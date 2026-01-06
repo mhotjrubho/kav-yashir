@@ -8,6 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ComplaintForm } from "@/types/complaint";
 
 interface PersonalDetailsSectionProps {
@@ -19,7 +20,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
     <div className="form-section animate-fade-in">
       <h2 className="form-section-title">
         <User className="h-5 w-5 text-primary" />
-        פרטים אישיים
+        פרטי הרשמה
       </h2>
       
       <div className="form-grid">
@@ -56,7 +57,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
           name="personalDetails.idNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>תעודת זהות *</FormLabel>
+              <FormLabel>מספר זהות *</FormLabel>
               <FormControl>
                 <Input placeholder="9 ספרות" maxLength={9} {...field} />
               </FormControl>
@@ -70,7 +71,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
           name="personalDetails.mobile"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>טלפון נייד *</FormLabel>
+              <FormLabel>מספר טלפון *</FormLabel>
               <FormControl>
                 <Input placeholder="05X-XXXXXXX" {...field} />
               </FormControl>
@@ -81,12 +82,12 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
 
         <FormField
           control={form.control}
-          name="personalDetails.phone"
+          name="personalDetails.ravKavNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>טלפון נוסף</FormLabel>
+              <FormLabel>מספר רב-קו</FormLabel>
               <FormControl>
-                <Input placeholder="טלפון נוסף (אופציונלי)" {...field} />
+                <Input placeholder="מספר רב-קו (אופציונלי)" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -98,7 +99,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
           name="personalDetails.email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>דוא"ל *</FormLabel>
+              <FormLabel>כתובת מייל *</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="example@email.com" {...field} />
               </FormControl>
@@ -114,7 +115,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
           name="personalDetails.city"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>עיר *</FormLabel>
+              <FormLabel>עיר מגורים *</FormLabel>
               <FormControl>
                 <Input placeholder="הזן עיר מגורים" {...field} />
               </FormControl>
@@ -150,45 +151,46 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             </FormItem>
           )}
         />
+      </div>
 
+      <div className="space-y-4 mt-6">
         <FormField
           control={form.control}
-          name="personalDetails.apartment"
+          name="personalDetails.acceptUpdates"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>דירה</FormLabel>
+            <FormItem className="flex flex-row items-start gap-3">
               <FormControl>
-                <Input placeholder="מספר דירה (אופציונלי)" {...field} />
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
               </FormControl>
-              <FormMessage />
+              <div className="space-y-1 leading-none">
+                <FormLabel className="font-normal cursor-pointer">
+                  אני מאשר/ת קבלת עדכונים
+                </FormLabel>
+              </div>
             </FormItem>
           )}
         />
 
         <FormField
           control={form.control}
-          name="personalDetails.zipCode"
+          name="personalDetails.acceptPrivacy"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>מיקוד</FormLabel>
+            <FormItem className="flex flex-row items-start gap-3">
               <FormControl>
-                <Input placeholder="מיקוד (אופציונלי)" {...field} />
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="personalDetails.poBox"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>ת.ד</FormLabel>
-              <FormControl>
-                <Input placeholder="תא דואר (אופציונלי)" {...field} />
-              </FormControl>
-              <FormMessage />
+              <div className="space-y-1 leading-none">
+                <FormLabel className="font-normal cursor-pointer">
+                  אני מאשר/ת את מדיניות הפרטיות *
+                </FormLabel>
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
