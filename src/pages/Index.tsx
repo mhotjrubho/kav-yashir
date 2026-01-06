@@ -5,15 +5,18 @@ import { Send } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { TransportTypeSelector } from "@/components/complaint/TransportTypeSelector";
+import { ComplaintTypeSelector } from "@/components/complaint/ComplaintTypeSelector";
 import { PersonalDetailsSection } from "@/components/complaint/PersonalDetailsSection";
-import { BusComplaintSection } from "@/components/complaint/BusComplaintSection";
-import { TrainComplaintSection } from "@/components/complaint/TrainComplaintSection";
-import { TaxiComplaintSection } from "@/components/complaint/TaxiComplaintSection";
-import { FileUploadSection } from "@/components/complaint/FileUploadSection";
-import { DeclarationsSection } from "@/components/complaint/DeclarationsSection";
+import { StationBasedComplaint } from "@/components/complaint/StationBasedComplaint";
+import { DriverBehaviorComplaint } from "@/components/complaint/DriverBehaviorComplaint";
+import { AddLineComplaint } from "@/components/complaint/AddLineComplaint";
+import { OvercrowdingComplaint } from "@/components/complaint/OvercrowdingComplaint";
+import { AddFrequencyComplaint } from "@/components/complaint/AddFrequencyComplaint";
+import { BusConditionComplaint } from "@/components/complaint/BusConditionComplaint";
+import { LicenseViolationComplaint } from "@/components/complaint/LicenseViolationComplaint";
+import { OtherComplaint } from "@/components/complaint/OtherComplaint";
 import { SuccessMessage } from "@/components/complaint/SuccessMessage";
-import { ComplaintForm, complaintFormSchema } from "@/types/complaint";
+import { ComplaintForm, complaintFormSchema, ComplaintType } from "@/types/complaint";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
 
 export default function Index() {
@@ -24,63 +27,99 @@ export default function Index() {
   const form = useForm<ComplaintForm>({
     resolver: zodResolver(complaintFormSchema),
     defaultValues: {
-      transportType: "bus",
+      complaintType: "no_ride",
       personalDetails: {
         firstName: "",
         lastName: "",
         idNumber: "",
         mobile: "",
-        phone: "",
-        fax: "",
-        email: "",
+        ravKavNumber: "",
         city: "",
         street: "",
         houseNumber: "",
-        apartment: "",
-        poBox: "",
-        zipCode: "",
+        email: "",
+        acceptUpdates: false,
+        acceptPrivacy: false,
       },
-      busDetails: {
-        hasRavKav: false,
-        ravKavNumber: "",
-        operator: "",
-        driverName: "",
-        busLicenseNumber: "",
-        eventDate: "",
-        eventHour: "",
+      stationBasedDetails: {
+        stationNumber: "",
         lineNumber: "",
-        direction: "",
-        boardingStation: "",
-        boardingCity: "",
-        dropoffStation: "",
-        stationAddress: "",
-        content: "",
-      },
-      trainDetails: {
-        trainType: "",
+        arrivalTime: "",
+        departureTime: "",
         eventDate: "",
-        eventHour: "",
-        startStation: "",
-        destStation: "",
-        trainNumber: "",
-        content: "",
+        description: "",
       },
-      taxiDetails: {
-        taxiType: "",
+      driverBehaviorDetails: {
+        lineNumber: "",
+        operator: "",
+        alternative: "",
+        eventDate: "",
+        eventTime: "",
+        isPersonalRavKav: true,
+        ravKavOrLicense: "",
+        identifierType: undefined,
         driverName: "",
-        drivingLicense: "",
-        eventDate: "",
-        eventHour: "",
-        eventLocation: "",
-        content: "",
+        description: "",
+        acceptTestimonyMinistry: false,
+        acceptTestimonyCourt: false,
       },
-      firstDeclaration: false,
-      secondDeclaration: false,
+      addLineDetails: {
+        originCity: "",
+        destinationCity: "",
+        description: "",
+      },
+      overcrowdingDetails: {
+        lineNumber: "",
+        operator: "",
+        eventDate: "",
+        eventTime: "",
+        eventLocation: "",
+        alternative: "",
+        description: "",
+      },
+      addFrequencyDetails: {
+        lineNumber: "",
+        operator: "",
+        alternative: "",
+        reason: "",
+        eventDate: "",
+        startTime: "",
+        endTime: "",
+        description: "",
+      },
+      busConditionDetails: {
+        lineNumber: "",
+        operator: "",
+        alternative: "",
+        eventDate: "",
+        eventTime: "",
+        isPersonalRavKav: true,
+        ravKavOrLicense: "",
+        identifierType: undefined,
+        issueDescription: "",
+        tripStopped: false,
+        replacementBusArrived: undefined,
+        replacementWaitTime: "",
+        busArrivedEmpty: undefined,
+        eventLocation: "",
+        description: "",
+      },
+      licenseViolationDetails: {
+        lineNumber: "",
+        operator: "",
+        eventCity: "",
+        eventDate: "",
+        eventTime: "",
+        description: "",
+      },
+      otherDetails: {
+        description: "",
+      },
       attachments: [],
     },
   });
 
-  const transportType = form.watch("transportType");
+  const complaintType = form.watch("complaintType") as ComplaintType;
 
   const onSubmit = async (data: ComplaintForm) => {
     setIsSubmitting(true);
@@ -117,8 +156,30 @@ export default function Index() {
     setReferenceNumber("");
   };
 
-  const handleFilesChange = (urls: string[]) => {
-    form.setValue("attachments", urls);
+  const renderComplaintForm = () => {
+    switch (complaintType) {
+      case "no_ride":
+      case "no_stop":
+      case "delay":
+      case "early_departure":
+        return <StationBasedComplaint form={form} complaintType={complaintType} />;
+      case "driver_behavior":
+        return <DriverBehaviorComplaint form={form} />;
+      case "add_line":
+        return <AddLineComplaint form={form} />;
+      case "overcrowding":
+        return <OvercrowdingComplaint form={form} />;
+      case "add_frequency":
+        return <AddFrequencyComplaint form={form} />;
+      case "bus_condition":
+        return <BusConditionComplaint form={form} />;
+      case "license_violation":
+        return <LicenseViolationComplaint form={form} />;
+      case "other":
+        return <OtherComplaint form={form} />;
+      default:
+        return null;
+    }
   };
 
   if (isSuccess) {
@@ -155,19 +216,9 @@ export default function Index() {
         {/* Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <TransportTypeSelector form={form} />
             <PersonalDetailsSection form={form} />
-            
-            {transportType === "bus" && <BusComplaintSection form={form} />}
-            {transportType === "train" && <TrainComplaintSection form={form} />}
-            {transportType === "taxi" && <TaxiComplaintSection form={form} />}
-            
-            <FileUploadSection
-              onFilesChange={handleFilesChange}
-              uploadedUrls={form.watch("attachments") || []}
-            />
-            
-            <DeclarationsSection form={form} />
+            <ComplaintTypeSelector form={form} />
+            {renderComplaintForm()}
 
             {/* Submit Button */}
             <div className="flex justify-center pt-4">

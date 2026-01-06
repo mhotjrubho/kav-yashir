@@ -1,138 +1,202 @@
 import { z } from "zod";
+import { validateIsraeliId } from "@/lib/israeliIdValidator";
 
-export const transportTypes = ["bus", "train", "taxi"] as const;
-export type TransportType = typeof transportTypes[number];
+// Complaint types
+export const complaintTypes = [
+  "no_ride",
+  "no_stop",
+  "delay",
+  "early_departure",
+  "driver_behavior",
+  "add_line",
+  "overcrowding",
+  "add_frequency",
+  "bus_condition",
+  "license_violation",
+  "other",
+] as const;
 
-export const transportTypeLabels: Record<TransportType, string> = {
-  bus: "אוטובוס / תחבורה ציבורית",
-  train: "רכבת",
-  taxi: "מונית",
+export type ComplaintType = (typeof complaintTypes)[number];
+
+export const complaintTypeLabels: Record<ComplaintType, string> = {
+  no_ride: "אי ביצוע נסיעה",
+  no_stop: "אי עצירה בתחנה",
+  delay: "איחור",
+  early_departure: "הקדמה",
+  driver_behavior: "התנהגות נהג / פקח",
+  add_line: "הוספת קו",
+  overcrowding: "עומס בקו",
+  add_frequency: "הוספת תדירות",
+  bus_condition: "תקינות האוטובוס",
+  license_violation: "ביצוע שאינו מתאים לרישיון הקו",
+  other: "אחר",
 };
 
-// Bus operators list
+// Bus operators from GTFS agency.txt (filtered for bus operators only)
 export const busOperators = [
-  { value: "1", label: "אגד" },
-  { value: "2", label: "דן" },
-  { value: "3", label: "אגד תעבורה" },
-  { value: "4", label: "קווים" },
-  { value: "5", label: "מטרופולין" },
-  { value: "6", label: "סופרבוס" },
-  { value: "7", label: "נתיב אקספרס" },
-  { value: "8", label: "אפיקים" },
-  { value: "9", label: "גלים" },
-  { value: "10", label: "ש.א.מ" },
-  { value: "11", label: "אחר" },
+  { value: "3", label: "אגד" },
+  { value: "4", label: "אלקטרה אפיקים תחבורה" },
+  { value: "5", label: "דן" },
+  { value: "6", label: "ש.א.מ" },
+  { value: "7", label: "נסיעות ותיירות" },
+  { value: "8", label: "גי.בי.טורס" },
+  { value: "10", label: "מועצה אזורית אילות" },
+  { value: "14", label: "נתיב אקספרס" },
+  { value: "15", label: "מטרופולין" },
+  { value: "16", label: "סופרבוס" },
+  { value: "18", label: "קווים" },
+  { value: "21", label: "כפיר" },
+  { value: "23", label: "גלים" },
+  { value: "24", label: "מועצה אזורית גולן" },
+  { value: "25", label: "אלקטרה אפיקים" },
+  { value: "31", label: "דן בדרום" },
+  { value: "32", label: "דן באר שבע" },
+  { value: "34", label: "תנופה" },
+  { value: "35", label: "בית שמש אקספרס" },
+  { value: "37", label: "אקסטרה" },
+  { value: "38", label: "אקסטרה ירושלים" },
+  { value: "135", label: "דרך אגד עוטף ירושלים" },
 ] as const;
 
-// Train types
-export const trainTypes = [
-  { value: "1", label: "רכבת ישראל" },
-  { value: "2", label: "הרכבת הקלה ירושלים" },
-  { value: "3", label: "הרכבת הקלה תל אביב" },
+// Frequency request reasons
+export const frequencyReasons = [
+  { value: "overcrowding", label: "עומס נוסעים" },
+  { value: "long_wait", label: "זמני המתנה ארוכים" },
+  { value: "extend_hours", label: "הארכת שעות פעילות" },
 ] as const;
 
-// Taxi types
-export const taxiTypes = [
-  { value: "1", label: "מונית מיוחדת" },
-  { value: "2", label: "מונית שירות" },
-] as const;
-
-// Train stations
-export const trainStations = [
-  { value: "1", label: "תל אביב - סבידור מרכז" },
-  { value: "2", label: "תל אביב - השלום" },
-  { value: "3", label: "תל אביב - האוניברסיטה" },
-  { value: "4", label: "חיפה - מרכז השמונה" },
-  { value: "5", label: "חיפה - חוף הכרמל" },
-  { value: "6", label: "ירושלים - יצחק נבון" },
-  { value: "7", label: "באר שבע - מרכז" },
-  { value: "8", label: "נתב\"ג" },
-  { value: "9", label: "הרצליה" },
-  { value: "10", label: "נתניה" },
-  { value: "11", label: "חדרה - מערב" },
-  { value: "12", label: "עכו" },
-  { value: "13", label: "נהריה" },
-  { value: "14", label: "אשדוד" },
-  { value: "15", label: "אשקלון" },
-  { value: "16", label: "רחובות" },
-  { value: "17", label: "לוד" },
-  { value: "18", label: "ראשון לציון" },
-  { value: "19", label: "פתח תקווה" },
-  { value: "20", label: "מודיעין - מרכז" },
-  { value: "21", label: "אחר" },
-] as const;
-
-// Personal details schema
+// Personal details schema with Israeli ID validation
 export const personalDetailsSchema = z.object({
   firstName: z.string().min(2, "שם פרטי חייב להכיל לפחות 2 תווים"),
   lastName: z.string().min(2, "שם משפחה חייב להכיל לפחות 2 תווים"),
-  idNumber: z.string().regex(/^\d{9}$/, "תעודת זהות חייבת להכיל 9 ספרות"),
-  mobile: z.string().regex(/^05\d{8}$/, "מספר נייד לא תקין"),
-  phone: z.string().optional(),
-  fax: z.string().optional(),
-  email: z.string().email("כתובת אימייל לא תקינה"),
+  idNumber: z
+    .string()
+    .min(5, "מספר זהות חייב להכיל לפחות 5 ספרות")
+    .max(9, "מספר זהות חייב להכיל עד 9 ספרות")
+    .regex(/^\d+$/, "מספר זהות חייב להכיל ספרות בלבד")
+    .refine(validateIsraeliId, "מספר זהות לא תקין"),
+  mobile: z.string().regex(/^05\d{8}$/, "מספר טלפון לא תקין"),
+  ravKavNumber: z.string().optional(),
   city: z.string().min(2, "יש להזין עיר"),
   street: z.string().min(2, "יש להזין רחוב"),
   houseNumber: z.string().min(1, "יש להזין מספר בית"),
-  apartment: z.string().optional(),
-  poBox: z.string().optional(),
-  zipCode: z.string().optional(),
+  email: z.string().email("כתובת אימייל לא תקינה"),
+  acceptUpdates: z.boolean().default(false),
+  acceptPrivacy: z.boolean().refine((val) => val === true, "יש לאשר את מדיניות הפרטיות"),
 });
 
-// Bus complaint schema
-export const busComplaintSchema = z.object({
-  hasRavKav: z.boolean().default(false),
-  ravKavNumber: z.string().optional(),
-  operator: z.string().min(1, "יש לבחור מפעיל"),
-  driverName: z.string().optional(),
-  busLicenseNumber: z.string().optional(),
-  eventDate: z.string().min(1, "יש להזין תאריך"),
-  eventHour: z.string().min(1, "יש להזין שעה"),
+// Station-based complaint schema (no_ride, no_stop, delay, early_departure)
+export const stationBasedComplaintSchema = z.object({
+  stationNumber: z.string().min(1, "יש להזין מספר תחנה"),
   lineNumber: z.string().min(1, "יש להזין מספר קו"),
-  direction: z.string().optional(),
-  boardingStation: z.string().optional(),
-  boardingCity: z.string().optional(),
-  dropoffStation: z.string().optional(),
-  stationAddress: z.string().optional(),
-  content: z.string().min(10, "תוכן הפנייה חייב להכיל לפחות 10 תווים"),
-});
-
-// Train complaint schema
-export const trainComplaintSchema = z.object({
-  trainType: z.string().min(1, "יש לבחור סוג רכבת"),
+  arrivalTime: z.string().min(1, "יש להזין שעת הגעה לתחנה"),
+  departureTime: z.string().min(1, "יש להזין שעת עזיבה מהתחנה"),
   eventDate: z.string().min(1, "יש להזין תאריך"),
-  eventHour: z.string().min(1, "יש להזין שעה"),
-  startStation: z.string().min(1, "יש לבחור תחנת מוצא"),
-  destStation: z.string().min(1, "יש לבחור תחנת יעד"),
-  trainNumber: z.string().optional(),
-  content: z.string().min(10, "תוכן הפנייה חייב להכיל לפחות 10 תווים"),
+  description: z.string().optional(),
 });
 
-// Taxi complaint schema
-export const taxiComplaintSchema = z.object({
-  taxiType: z.string().min(1, "יש לבחור סוג מונית"),
+// Driver behavior complaint schema
+export const driverBehaviorComplaintSchema = z.object({
+  lineNumber: z.string().min(1, "יש להזין מספר קו"),
+  operator: z.string().min(1, "יש לבחור מפעיל"),
+  alternative: z.string().optional(), // origin-destination
+  eventDate: z.string().min(1, "יש להזין תאריך"),
+  eventTime: z.string().min(1, "יש להזין שעה"),
+  isPersonalRavKav: z.boolean().default(true),
+  ravKavOrLicense: z.string().optional(),
+  identifierType: z.enum(["ravkav", "license"]).optional(),
   driverName: z.string().optional(),
-  drivingLicense: z.string().optional(),
+  description: z.string().min(10, "יש להזין תיאור האירוע"),
+  acceptTestimonyMinistry: z.boolean().default(false),
+  acceptTestimonyCourt: z.boolean().default(false),
+});
+
+// Add line complaint schema
+export const addLineComplaintSchema = z.object({
+  originCity: z.string().min(2, "יש להזין יישוב עלייה"),
+  destinationCity: z.string().min(2, "יש להזין יישוב יעד"),
+  description: z.string().min(10, "יש להזין תיאור הבקשה"),
+});
+
+// Overcrowding complaint schema
+export const overcrowdingComplaintSchema = z.object({
+  lineNumber: z.string().min(1, "יש להזין מספר קו"),
+  operator: z.string().min(1, "יש לבחור מפעיל"),
   eventDate: z.string().min(1, "יש להזין תאריך"),
-  eventHour: z.string().min(1, "יש להזין שעה"),
-  eventLocation: z.string().min(2, "יש להזין מיקום האירוע"),
-  content: z.string().min(10, "תוכן הפנייה חייב להכיל לפחות 10 תווים"),
+  eventTime: z.string().min(1, "יש להזין שעה"),
+  eventLocation: z.string().min(2, "יש להזין מיקום"),
+  alternative: z.string().optional(),
+  description: z.string().optional(),
+});
+
+// Add frequency complaint schema
+export const addFrequencyComplaintSchema = z.object({
+  lineNumber: z.string().min(1, "יש להזין מספר קו"),
+  operator: z.string().min(1, "יש לבחור מפעיל"),
+  alternative: z.string().optional(),
+  reason: z.string().min(1, "יש לבחור סיבה"),
+  eventDate: z.string().min(1, "יש להזין תאריך"),
+  startTime: z.string().min(1, "יש להזין שעת התחלה"),
+  endTime: z.string().min(1, "יש להזין שעת סיום"),
+  description: z.string().min(10, "יש להזין תיאור"),
+});
+
+// Bus condition complaint schema
+export const busConditionComplaintSchema = z.object({
+  lineNumber: z.string().min(1, "יש להזין מספר קו"),
+  operator: z.string().min(1, "יש לבחור מפעיל"),
+  alternative: z.string().optional(),
+  eventDate: z.string().min(1, "יש להזין תאריך"),
+  eventTime: z.string().min(1, "יש להזין שעה"),
+  isPersonalRavKav: z.boolean().default(true),
+  ravKavOrLicense: z.string().optional(),
+  identifierType: z.enum(["ravkav", "license"]).optional(),
+  issueDescription: z.string().min(10, "יש להזין תיאור התקלה"),
+  tripStopped: z.boolean().default(false),
+  replacementBusArrived: z.boolean().optional(),
+  replacementWaitTime: z.string().optional(),
+  busArrivedEmpty: z.boolean().optional(),
+  eventLocation: z.string().optional(),
+  description: z.string().optional(),
+});
+
+// License violation complaint schema
+export const licenseViolationComplaintSchema = z.object({
+  lineNumber: z.string().min(1, "יש להזין מספר קו"),
+  operator: z.string().min(1, "יש לבחור מפעיל"),
+  eventCity: z.string().min(2, "יש להזין עיר"),
+  eventDate: z.string().min(1, "יש להזין תאריך"),
+  eventTime: z.string().min(1, "יש להזין שעה"),
+  description: z.string().min(10, "יש להזין תיאור"),
+});
+
+// Other complaint schema
+export const otherComplaintSchema = z.object({
+  description: z.string().min(10, "יש להזין תיאור מלא"),
 });
 
 // Full form schema
 export const complaintFormSchema = z.object({
-  transportType: z.enum(transportTypes),
+  complaintType: z.enum(complaintTypes),
   personalDetails: personalDetailsSchema,
-  busDetails: busComplaintSchema.optional(),
-  trainDetails: trainComplaintSchema.optional(),
-  taxiDetails: taxiComplaintSchema.optional(),
-  firstDeclaration: z.boolean().refine((val) => val === true, "יש לאשר את ההצהרה"),
-  secondDeclaration: z.boolean().refine((val) => val === true, "יש לאשר את ההצהרה"),
+  stationBasedDetails: stationBasedComplaintSchema.optional(),
+  driverBehaviorDetails: driverBehaviorComplaintSchema.optional(),
+  addLineDetails: addLineComplaintSchema.optional(),
+  overcrowdingDetails: overcrowdingComplaintSchema.optional(),
+  addFrequencyDetails: addFrequencyComplaintSchema.optional(),
+  busConditionDetails: busConditionComplaintSchema.optional(),
+  licenseViolationDetails: licenseViolationComplaintSchema.optional(),
+  otherDetails: otherComplaintSchema.optional(),
   attachments: z.array(z.string()).optional(),
 });
 
 export type PersonalDetails = z.infer<typeof personalDetailsSchema>;
-export type BusComplaint = z.infer<typeof busComplaintSchema>;
-export type TrainComplaint = z.infer<typeof trainComplaintSchema>;
-export type TaxiComplaint = z.infer<typeof taxiComplaintSchema>;
+export type StationBasedComplaint = z.infer<typeof stationBasedComplaintSchema>;
+export type DriverBehaviorComplaint = z.infer<typeof driverBehaviorComplaintSchema>;
+export type AddLineComplaint = z.infer<typeof addLineComplaintSchema>;
+export type OvercrowdingComplaint = z.infer<typeof overcrowdingComplaintSchema>;
+export type AddFrequencyComplaint = z.infer<typeof addFrequencyComplaintSchema>;
+export type BusConditionComplaint = z.infer<typeof busConditionComplaintSchema>;
+export type LicenseViolationComplaint = z.infer<typeof licenseViolationComplaintSchema>;
+export type OtherComplaint = z.infer<typeof otherComplaintSchema>;
 export type ComplaintForm = z.infer<typeof complaintFormSchema>;
