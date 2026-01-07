@@ -9,15 +9,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ComplaintForm, busOperators } from "@/types/complaint";
+import { ComplaintForm } from "@/types/complaint";
 import { FileUploadSection } from "./FileUploadSection";
+import { LineNumberSelect } from "./gtfs/LineNumberSelect";
+import { OperatorSelect } from "./gtfs/OperatorSelect";
+import { CitySelect } from "./gtfs/CitySelect";
 
 interface LicenseViolationComplaintProps {
   form: UseFormReturn<ComplaintForm>;
@@ -36,57 +32,21 @@ export function LicenseViolationComplaint({ form }: LicenseViolationComplaintPro
       </h2>
 
       <div className="form-grid">
-        <FormField
-          control={form.control}
-          name="licenseViolationDetails.lineNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>מספר קו *</FormLabel>
-              <FormControl>
-                <Input placeholder="הזן מספר קו" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <LineNumberSelect
+          form={form}
+          fieldPath="licenseViolationDetails.lineNumber"
         />
 
-        <FormField
-          control={form.control}
-          name="licenseViolationDetails.operator"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>מפעיל *</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="בחר מפעיל" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {busOperators.map((op) => (
-                    <SelectItem key={op.value} value={op.value}>
-                      {op.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        <OperatorSelect
+          form={form}
+          fieldPath="licenseViolationDetails.operator"
+          lineNumberFieldPath="licenseViolationDetails.lineNumber"
         />
 
-        <FormField
-          control={form.control}
-          name="licenseViolationDetails.eventCity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>עיר האירוע *</FormLabel>
-              <FormControl>
-                <Input placeholder="הזן עיר" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <CitySelect
+          form={form}
+          fieldPath="licenseViolationDetails.eventCity"
+          lineNumberFieldPath="licenseViolationDetails.lineNumber"
         />
 
         <FormField

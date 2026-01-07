@@ -129,7 +129,23 @@ export default function Index() {
       
       console.log("Submitting complaint:", data);
       
-      // TODO: Send to email and Google Sheets via edge function
+      // Send to webhook
+      try {
+        await fetch("https://webhook.site/94e1aeb2-1460-4324-ab25-744066524393", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          mode: "no-cors",
+          body: JSON.stringify({
+            referenceNumber: refNum,
+            submittedAt: new Date().toISOString(),
+            complaintType: data.complaintType,
+            personalDetails: data.personalDetails,
+            ...data,
+          }),
+        });
+      } catch (webhookError) {
+        console.error("Webhook error:", webhookError);
+      }
       
       setReferenceNumber(refNum);
       setIsSuccess(true);

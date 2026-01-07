@@ -10,17 +10,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ComplaintForm, busOperators } from "@/types/complaint";
+import { ComplaintForm } from "@/types/complaint";
 import { FileUploadSection } from "./FileUploadSection";
+import { LineNumberSelect } from "./gtfs/LineNumberSelect";
+import { OperatorSelect } from "./gtfs/OperatorSelect";
+import { AlternativeSelect } from "./gtfs/AlternativeSelect";
 
 interface DriverBehaviorComplaintProps {
   form: UseFormReturn<ComplaintForm>;
@@ -41,57 +37,22 @@ export function DriverBehaviorComplaint({ form }: DriverBehaviorComplaintProps) 
       </h2>
 
       <div className="form-grid">
-        <FormField
-          control={form.control}
-          name="driverBehaviorDetails.lineNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>מספר קו *</FormLabel>
-              <FormControl>
-                <Input placeholder="הזן מספר קו" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <LineNumberSelect
+          form={form}
+          fieldPath="driverBehaviorDetails.lineNumber"
         />
 
-        <FormField
-          control={form.control}
-          name="driverBehaviorDetails.operator"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>מפעיל *</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="בחר מפעיל" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {busOperators.map((op) => (
-                    <SelectItem key={op.value} value={op.value}>
-                      {op.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        <OperatorSelect
+          form={form}
+          fieldPath="driverBehaviorDetails.operator"
+          lineNumberFieldPath="driverBehaviorDetails.lineNumber"
         />
 
-        <FormField
-          control={form.control}
-          name="driverBehaviorDetails.alternative"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>חלופה (מוצא ויעד)</FormLabel>
-              <FormControl>
-                <Input placeholder="לדוגמא: תל אביב - ירושלים" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <AlternativeSelect
+          form={form}
+          fieldPath="driverBehaviorDetails.alternative"
+          lineNumberFieldPath="driverBehaviorDetails.lineNumber"
+          operatorFieldPath="driverBehaviorDetails.operator"
         />
 
         <FormField

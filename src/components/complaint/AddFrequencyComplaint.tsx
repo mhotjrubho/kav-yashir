@@ -10,15 +10,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ComplaintForm, busOperators, frequencyReasons } from "@/types/complaint";
+import { ComplaintForm, frequencyReasons } from "@/types/complaint";
 import { FileUploadSection } from "./FileUploadSection";
+import { LineNumberSelect } from "./gtfs/LineNumberSelect";
+import { OperatorSelect } from "./gtfs/OperatorSelect";
+import { AlternativeSelect } from "./gtfs/AlternativeSelect";
 
 interface AddFrequencyComplaintProps {
   form: UseFormReturn<ComplaintForm>;
@@ -37,57 +33,22 @@ export function AddFrequencyComplaint({ form }: AddFrequencyComplaintProps) {
       </h2>
 
       <div className="form-grid">
-        <FormField
-          control={form.control}
-          name="addFrequencyDetails.lineNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>מספר קו *</FormLabel>
-              <FormControl>
-                <Input placeholder="הזן מספר קו" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <LineNumberSelect
+          form={form}
+          fieldPath="addFrequencyDetails.lineNumber"
         />
 
-        <FormField
-          control={form.control}
-          name="addFrequencyDetails.operator"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>מפעיל *</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="בחר מפעיל" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {busOperators.map((op) => (
-                    <SelectItem key={op.value} value={op.value}>
-                      {op.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        <OperatorSelect
+          form={form}
+          fieldPath="addFrequencyDetails.operator"
+          lineNumberFieldPath="addFrequencyDetails.lineNumber"
         />
 
-        <FormField
-          control={form.control}
-          name="addFrequencyDetails.alternative"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>חלופה (מוצא ויעד)</FormLabel>
-              <FormControl>
-                <Input placeholder="לדוגמא: תל אביב - ירושלים" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <AlternativeSelect
+          form={form}
+          fieldPath="addFrequencyDetails.alternative"
+          lineNumberFieldPath="addFrequencyDetails.lineNumber"
+          operatorFieldPath="addFrequencyDetails.operator"
         />
       </div>
 
