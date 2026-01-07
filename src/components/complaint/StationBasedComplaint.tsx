@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { MapPin } from "lucide-react";
 import {
@@ -11,6 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ComplaintForm, ComplaintType, complaintTypeLabels } from "@/types/complaint";
 import { FileUploadSection } from "./FileUploadSection";
+import { StopCodeInput } from "./gtfs/StopCodeInput";
+import { LineNumberSelect } from "./gtfs/LineNumberSelect";
+import { Stop } from "@/hooks/useGtfsData";
 
 interface StationBasedComplaintProps {
   form: UseFormReturn<ComplaintForm>;
@@ -18,6 +22,8 @@ interface StationBasedComplaintProps {
 }
 
 export function StationBasedComplaint({ form, complaintType }: StationBasedComplaintProps) {
+  const [validatedStop, setValidatedStop] = useState<Stop | null>(null);
+
   const handleFilesChange = (urls: string[]) => {
     form.setValue("attachments", urls);
   };
@@ -30,32 +36,15 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
       </h2>
 
       <div className="form-grid">
-        <FormField
-          control={form.control}
-          name="stationBasedDetails.stationNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>מספר תחנה *</FormLabel>
-              <FormControl>
-                <Input placeholder="הזן מספר תחנה" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <StopCodeInput
+          form={form}
+          fieldPath="stationBasedDetails.stationNumber"
+          onStopValidated={setValidatedStop}
         />
 
-        <FormField
-          control={form.control}
-          name="stationBasedDetails.lineNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>מספר קו *</FormLabel>
-              <FormControl>
-                <Input placeholder="הזן מספר קו" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <LineNumberSelect
+          form={form}
+          fieldPath="stationBasedDetails.lineNumber"
         />
 
         <FormField
