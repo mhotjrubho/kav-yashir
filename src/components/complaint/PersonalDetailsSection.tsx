@@ -1,5 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import { User } from "lucide-react";
+import { User, Lock } from "lucide-react";
 import {
   FormField,
   FormItem,
@@ -13,14 +13,21 @@ import { ComplaintForm } from "@/types/complaint";
 
 interface PersonalDetailsSectionProps {
   form: UseFormReturn<ComplaintForm>;
+  disabled?: boolean;
 }
 
-export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
+export function PersonalDetailsSection({ form, disabled = false }: PersonalDetailsSectionProps) {
   return (
     <div className="form-section animate-fade-in">
       <h2 className="form-section-title">
         <User className="h-5 w-5 text-primary" />
         פרטי הרשמה
+        {disabled && (
+          <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground mr-2">
+            <Lock className="h-3 w-3" />
+            מבוסס על הפרופיל שלך
+          </span>
+        )}
       </h2>
       
       <div className="form-grid">
@@ -31,7 +38,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>שם פרטי *</FormLabel>
               <FormControl>
-                <Input placeholder="הזן שם פרטי" {...field} />
+                <Input placeholder="הזן שם פרטי" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -45,7 +52,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>שם משפחה *</FormLabel>
               <FormControl>
-                <Input placeholder="הזן שם משפחה" {...field} />
+                <Input placeholder="הזן שם משפחה" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -59,7 +66,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>מספר זהות *</FormLabel>
               <FormControl>
-                <Input placeholder="9 ספרות" maxLength={9} {...field} />
+                <Input placeholder="9 ספרות" maxLength={9} {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -73,7 +80,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>מספר טלפון *</FormLabel>
               <FormControl>
-                <Input placeholder="05X-XXXXXXX" {...field} />
+                <Input placeholder="05X-XXXXXXX" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -87,7 +94,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>מספר רב-קו</FormLabel>
               <FormControl>
-                <Input placeholder="מספר רב-קו (אופציונלי)" {...field} />
+                <Input placeholder="מספר רב-קו (אופציונלי)" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,7 +108,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>כתובת מייל *</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="example@email.com" {...field} />
+                <Input type="email" placeholder="example@email.com" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -117,7 +124,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>עיר מגורים *</FormLabel>
               <FormControl>
-                <Input placeholder="הזן עיר מגורים" {...field} />
+                <Input placeholder="הזן עיר מגורים" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -131,7 +138,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>רחוב *</FormLabel>
               <FormControl>
-                <Input placeholder="הזן שם רחוב" {...field} />
+                <Input placeholder="הזן שם רחוב" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -145,7 +152,7 @@ export function PersonalDetailsSection({ form }: PersonalDetailsSectionProps) {
             <FormItem>
               <FormLabel>מספר בית *</FormLabel>
               <FormControl>
-                <Input placeholder="מספר בית" {...field} />
+                <Input placeholder="מספר בית" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>

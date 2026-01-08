@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Send } from "lucide-react";
@@ -16,10 +17,14 @@ import { BusConditionComplaint } from "@/components/complaint/BusConditionCompla
 import { LicenseViolationComplaint } from "@/components/complaint/LicenseViolationComplaint";
 import { OtherComplaint } from "@/components/complaint/OtherComplaint";
 import { SuccessMessage } from "@/components/complaint/SuccessMessage";
+import { UserHeader } from "@/components/auth/UserHeader";
 import { ComplaintForm, complaintFormSchema, ComplaintType } from "@/types/complaint";
+import { useAuthContext } from "@/contexts/AuthContext";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
 
 export default function Index() {
+  const navigate = useNavigate();
+  const { profile, isAuthenticated, isProfileComplete, loading } = useAuthContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [referenceNumber, setReferenceNumber] = useState("");
@@ -119,9 +124,42 @@ export default function Index() {
     },
   });
 
+  // Pre-fill form with profile data when authenticated
+  useEffect(() => {
+    if (profile && isProfileComplete) {
+      form.setValue("personalDetails.firstName", profile.first_name || "");
+      form.setValue("personalDetails.lastName", profile.last_name || "");
+      form.setValue("personalDetails.idNumber", profile.id_number || "");
+      form.setValue("personalDetails.mobile", profile.mobile || "");
+      form.setValue("personalDetails.ravKavNumber", profile.rav_kav_number || "");
+      form.setValue("personalDetails.email", profile.email || "");
+      form.setValue("personalDetails.city", profile.city || "");
+      form.setValue("personalDetails.street", profile.street || "");
+      form.setValue("personalDetails.houseNumber", profile.house_number || "");
+    }
+  }, [profile, isProfileComplete, form]);
+
+  // Redirect to complete profile if authenticated but profile incomplete
+  useEffect(() => {
+    if (!loading && isAuthenticated && !isProfileComplete) {
+      navigate("/complete-profile");
+    }
+  }, [loading, isAuthenticated, isProfileComplete, navigate]);
+
   const complaintType = form.watch("complaintType") as ComplaintType;
 
   const onSubmit = async (data: ComplaintForm) => {
+    // Require authentication for complaint submission
+    if (!isAuthenticated) {
+      toast({
+        title: "נדרשת התחברות",
+        description: "יש להתחבר או להירשם כדי להגיש תלונה",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Generate reference number
@@ -168,6 +206,18 @@ export default function Index() {
 
   const handleNewComplaint = () => {
     form.reset();
+    // Re-fill personal details from profile
+    if (profile && isProfileComplete) {
+      form.setValue("personalDetails.firstName", profile.first_name || "");
+      form.setValue("personalDetails.lastName", profile.last_name || "");
+      form.setValue("personalDetails.idNumber", profile.id_number || "");
+      form.setValue("personalDetails.mobile", profile.mobile || "");
+      form.setValue("personalDetails.ravKavNumber", profile.rav_kav_number || "");
+      form.setValue("personalDetails.email", profile.email || "");
+      form.setValue("personalDetails.city", profile.city || "");
+      form.setValue("personalDetails.street", profile.street || "");
+      form.setValue("personalDetails.houseNumber", profile.house_number || "");
+    }
     setIsSuccess(false);
     setReferenceNumber("");
   };
@@ -198,6 +248,14 @@ export default function Index() {
     }
   };
 
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">טוען...</div>
+      </main>
+    );
+  }
+
   if (isSuccess) {
     return (
       <main className="min-h-screen bg-background py-8 px-4">
@@ -214,6 +272,9 @@ export default function Index() {
   return (
     <main className="min-h-screen bg-background py-8 px-4">
       <div className="container max-w-3xl">
+        {/* User Header */}
+        <UserHeader />
+
         {/* Header */}
         <header className="text-center mb-8">
           <img
@@ -232,7 +293,7 @@ export default function Index() {
         {/* Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <PersonalDetailsSection form={form} />
+            <PersonalDetailsSection form={form} disabled={isProfileComplete} />
             <ComplaintTypeSelector form={form} />
             {renderComplaintForm()}
 
