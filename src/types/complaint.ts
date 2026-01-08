@@ -107,8 +107,8 @@ export const driverBehaviorComplaintSchema = z.object({
   identifierType: z.enum(["ravkav", "license"]).optional(),
   driverName: z.string().optional(),
   description: z.string().min(10, "יש להזין תיאור האירוע"),
-  acceptTestimonyMinistry: z.boolean().default(false),
-  acceptTestimonyCourt: z.boolean().default(false),
+  acceptTestimonyMinistry: z.boolean().refine((val) => val === true, "יש לאשר מסירת עדות למשרד התחבורה"),
+  acceptTestimonyCourt: z.boolean().refine((val) => val === true, "יש לאשר מסירת עדות בבית משפט"),
 });
 
 // Add line complaint schema
@@ -164,7 +164,7 @@ export const busConditionComplaintSchema = z.object({
 export const licenseViolationComplaintSchema = z.object({
   lineNumber: z.string().min(1, "יש להזין מספר קו"),
   operator: z.string().min(1, "יש לבחור מפעיל"),
-  eventCity: z.string().min(2, "יש להזין עיר"),
+  alternative: z.string().optional(),
   eventDate: z.string().min(1, "יש להזין תאריך"),
   eventTime: z.string().min(1, "יש להזין שעה"),
   description: z.string().min(10, "יש להזין תיאור"),

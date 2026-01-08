@@ -185,7 +185,9 @@ export function DriverBehaviorComplaint({ form }: DriverBehaviorComplaintProps) 
         />
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 space-y-4 p-4 border border-primary/20 rounded-lg bg-primary/5">
+        <p className="text-sm font-medium text-primary">אישורים נדרשים *</p>
+        
         <FormField
           control={form.control}
           name="driverBehaviorDetails.acceptTestimonyMinistry"
@@ -199,8 +201,9 @@ export function DriverBehaviorComplaint({ form }: DriverBehaviorComplaintProps) 
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel className="font-normal cursor-pointer">
-                  אני מאשר/ת מסירת עדות למשרד התחבורה
+                  אני מאשר/ת מסירת עדות למשרד התחבורה *
                 </FormLabel>
+                <FormMessage />
               </div>
             </FormItem>
           )}
@@ -219,8 +222,9 @@ export function DriverBehaviorComplaint({ form }: DriverBehaviorComplaintProps) 
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel className="font-normal cursor-pointer">
-                  אני מאשר/ת מסירת עדות בבית משפט
+                  אני מאשר/ת מסירת עדות בבית משפט *
                 </FormLabel>
+                <FormMessage />
               </div>
             </FormItem>
           )}

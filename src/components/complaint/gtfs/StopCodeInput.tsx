@@ -31,7 +31,7 @@ export function StopCodeInput({
   const stopCode = form.watch(fieldPath);
 
   useEffect(() => {
-    if (!stopCode || stopCode.length < 3 || loading) {
+    if (!stopCode || loading) {
       setValidatedStop(null);
       onStopValidated?.(null);
       return;
@@ -50,7 +50,7 @@ export function StopCodeInput({
   }, [stopCode, loading, getStopByCode, onStopValidated]);
 
   const isValid = validatedStop !== null;
-  const showValidation = stopCode && stopCode.length >= 3 && !loading;
+  const showValidation = stopCode && stopCode.length >= 1 && !loading;
 
   return (
     <FormField

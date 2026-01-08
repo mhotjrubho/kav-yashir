@@ -107,7 +107,7 @@ export default function Index() {
       licenseViolationDetails: {
         lineNumber: "",
         operator: "",
-        eventCity: "",
+        alternative: "",
         eventDate: "",
         eventTime: "",
         description: "",

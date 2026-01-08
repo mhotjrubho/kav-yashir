@@ -22,19 +22,22 @@ type AlternativeFieldPath =
   | "driverBehaviorDetails.alternative"
   | "overcrowdingDetails.alternative"
   | "addFrequencyDetails.alternative"
-  | "busConditionDetails.alternative";
+  | "busConditionDetails.alternative"
+  | "licenseViolationDetails.alternative";
 
 type LineNumberFieldPath =
   | "driverBehaviorDetails.lineNumber"
   | "overcrowdingDetails.lineNumber"
   | "addFrequencyDetails.lineNumber"
-  | "busConditionDetails.lineNumber";
+  | "busConditionDetails.lineNumber"
+  | "licenseViolationDetails.lineNumber";
 
 type OperatorFieldPath =
   | "driverBehaviorDetails.operator"
   | "overcrowdingDetails.operator"
   | "addFrequencyDetails.operator"
-  | "busConditionDetails.operator";
+  | "busConditionDetails.operator"
+  | "licenseViolationDetails.operator";
 
 interface AlternativeSelectProps {
   form: UseFormReturn<ComplaintForm>;

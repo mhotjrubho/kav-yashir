@@ -39,12 +39,14 @@ interface LineNumberSelectProps {
   form: UseFormReturn<ComplaintForm>;
   fieldPath: LineNumberFieldPath;
   onLineSelected?: (lineNumber: string) => void;
+  availableLines?: string[]; // Optional filter for lines at a specific stop
 }
 
 export function LineNumberSelect({
   form,
   fieldPath,
   onLineSelected,
+  availableLines,
 }: LineNumberSelectProps) {
   const { allLineNumbers, loading } = useGtfsValidation();
   const [open, setOpen] = useState(false);
@@ -52,12 +54,15 @@ export function LineNumberSelect({
 
   const value = form.watch(fieldPath);
 
+  // Use availableLines if provided, otherwise use all lines
+  const linesToShow = availableLines && availableLines.length > 0 ? availableLines : allLineNumbers;
+
   const filteredLines = useMemo(() => {
-    if (!search) return allLineNumbers.slice(0, 50); // Show first 50 by default
-    return allLineNumbers
+    if (!search) return linesToShow.slice(0, 50);
+    return linesToShow
       .filter((line) => line.includes(search))
       .slice(0, 50);
-  }, [allLineNumbers, search]);
+  }, [linesToShow, search]);
 
   return (
     <FormField
