@@ -13,7 +13,7 @@ import { ComplaintForm } from "@/types/complaint";
 import { FileUploadSection } from "./FileUploadSection";
 import { LineNumberSelect } from "./gtfs/LineNumberSelect";
 import { OperatorSelect } from "./gtfs/OperatorSelect";
-import { CitySelect } from "./gtfs/CitySelect";
+import { AlternativeSelect } from "./gtfs/AlternativeSelect";
 
 interface LicenseViolationComplaintProps {
   form: UseFormReturn<ComplaintForm>;
@@ -43,10 +43,11 @@ export function LicenseViolationComplaint({ form }: LicenseViolationComplaintPro
           lineNumberFieldPath="licenseViolationDetails.lineNumber"
         />
 
-        <CitySelect
+        <AlternativeSelect
           form={form}
-          fieldPath="licenseViolationDetails.eventCity"
+          fieldPath="licenseViolationDetails.alternative"
           lineNumberFieldPath="licenseViolationDetails.lineNumber"
+          operatorFieldPath="licenseViolationDetails.operator"
         />
 
         <FormField

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, X, FileText, Image } from "lucide-react";
+import { Upload, X, FileText, Image, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -11,33 +11,46 @@ interface FileUploadSectionProps {
 
 export function FileUploadSection({ onFilesChange, uploadedUrls }: FileUploadSectionProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; url: string }[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; url: string; type: string }[]>([]);
 
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    const newFiles: { name: string; url: string }[] = [];
+    const newFiles: { name: string; url: string; type: string }[] = [];
 
     try {
       for (const file of Array.from(files)) {
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+        // Validate file type - support images, PDFs, and videos
+        const allowedTypes = [
+          'image/jpeg', 
+          'image/png', 
+          'image/gif', 
+          'image/webp',
+          'application/pdf',
+          'video/mp4',
+          'video/webm',
+          'video/quicktime',
+          'video/x-msvideo'
+        ];
+        
         if (!allowedTypes.includes(file.type)) {
           toast({
             title: "סוג קובץ לא נתמך",
-            description: `הקובץ ${file.name} אינו נתמך. יש להעלות קבצי תמונה או PDF בלבד.`,
+            description: `הקובץ ${file.name} אינו נתמך. יש להעלות קבצי תמונה, וידאו או PDF.`,
             variant: "destructive",
           });
           continue;
         }
 
-        // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
+        // Validate file size (max 50MB for videos, 10MB for others)
+        const maxSize = file.type.startsWith('video/') ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+          const maxSizeMB = maxSize / (1024 * 1024);
           toast({
             title: "קובץ גדול מדי",
-            description: `הקובץ ${file.name} גדול מדי. גודל מקסימלי: 10MB`,
+            description: `הקובץ ${file.name} גדול מדי. גודל מקסימלי: ${maxSizeMB}MB`,
             variant: "destructive",
           });
           continue;
@@ -55,7 +68,7 @@ export function FileUploadSection({ onFilesChange, uploadedUrls }: FileUploadSec
           console.error('Upload error:', uploadError);
           toast({
             title: "שגיאה בהעלאה",
-            description: `לא ניתן להעלות את הקובץ ${file.name}`,
+            description: `לא ניתן להעלות את הקובץ ${file.name}. ${uploadError.message}`,
             variant: "destructive",
           });
           continue;
@@ -65,7 +78,7 @@ export function FileUploadSection({ onFilesChange, uploadedUrls }: FileUploadSec
           .from('complaint-attachments')
           .getPublicUrl(filePath);
 
-        newFiles.push({ name: file.name, url: publicUrl });
+        newFiles.push({ name: file.name, url: publicUrl, type: file.type });
       }
 
       if (newFiles.length > 0) {
@@ -98,10 +111,16 @@ export function FileUploadSection({ onFilesChange, uploadedUrls }: FileUploadSec
     onFilesChange(updatedFiles.map(f => f.url));
   }, [uploadedFiles, onFilesChange]);
 
-  const getFileIcon = (fileName: string) => {
+  const getFileIcon = (fileName: string, fileType?: string) => {
+    if (fileType?.startsWith('video/')) {
+      return <Video className="h-5 w-5 text-primary" />;
+    }
     const ext = fileName.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif'].includes(ext || '')) {
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
       return <Image className="h-5 w-5 text-primary" />;
+    }
+    if (['mp4', 'webm', 'mov', 'avi'].includes(ext || '')) {
+      return <Video className="h-5 w-5 text-primary" />;
     }
     return <FileText className="h-5 w-5 text-primary" />;
   };
@@ -114,7 +133,7 @@ export function FileUploadSection({ onFilesChange, uploadedUrls }: FileUploadSec
       </h2>
 
       <p className="text-sm text-muted-foreground mb-4">
-        ניתן לצרף תמונות או מסמכים רלוונטיים (PDF, JPG, PNG). גודל מקסימלי: 10MB לקובץ.
+        ניתן לצרף תמונות, סרטונים או מסמכים רלוונטיים (PDF, JPG, PNG, MP4). גודל מקסימלי: 10MB לתמונות ומסמכים, 50MB לסרטונים.
       </p>
 
       <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
@@ -123,7 +142,7 @@ export function FileUploadSection({ onFilesChange, uploadedUrls }: FileUploadSec
           id="file-upload"
           className="hidden"
           multiple
-          accept="image/*,.pdf"
+          accept="image/*,.pdf,video/*"
           onChange={handleFileUpload}
           disabled={isUploading}
         />
@@ -155,7 +174,7 @@ export function FileUploadSection({ onFilesChange, uploadedUrls }: FileUploadSec
               className="flex items-center justify-between p-3 bg-accent rounded-md"
             >
               <div className="flex items-center gap-2">
-                {getFileIcon(file.name)}
+                {getFileIcon(file.name, file.type)}
                 <span className="text-sm truncate max-w-[200px]">{file.name}</span>
               </div>
               <Button
