@@ -24,6 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { validateIsraeliId } from "@/lib/israeliIdValidator";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
 
 const loginSchema = z.object({
@@ -34,6 +35,14 @@ const loginSchema = z.object({
 const signUpSchema = z.object({
   firstName: z.string().min(2, "שם פרטי חייב להכיל לפחות 2 תווים"),
   lastName: z.string().min(2, "שם משפחה חייב להכיל לפחות 2 תווים"),
+  idNumber: z.string()
+    .length(9, "מספר זהות חייב להכיל 9 ספרות")
+    .refine(validateIsraeliId, "מספר זהות לא תקין"),
+  mobile: z.string().min(9, "מספר טלפון לא תקין"),
+  ravKavNumber: z.string().optional(),
+  city: z.string().min(2, "יש להזין עיר מגורים"),
+  street: z.string().min(2, "יש להזין רחוב"),
+  houseNumber: z.string().optional(),
   email: z.string().email("כתובת מייל לא תקינה"),
   password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
   confirmPassword: z.string(),
@@ -63,6 +72,12 @@ export default function Auth() {
     defaultValues: {
       firstName: "",
       lastName: "",
+      idNumber: "",
+      mobile: "",
+      ravKavNumber: "",
+      city: "",
+      street: "",
+      houseNumber: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -99,7 +114,16 @@ export default function Auth() {
 
   const handleSignUp = async (data: SignUpFormData) => {
     setIsSubmitting(true);
-    const { error } = await signUp(data.email, data.password, data.firstName, data.lastName);
+    const { error } = await signUp(data.email, data.password, {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      idNumber: data.idNumber,
+      mobile: data.mobile,
+      ravKavNumber: data.ravKavNumber || "",
+      city: data.city,
+      street: data.street,
+      houseNumber: data.houseNumber || "",
+    });
     setIsSubmitting(false);
 
     if (error) {
@@ -115,7 +139,7 @@ export default function Auth() {
     } else {
       toast({
         title: "נרשמת בהצלחה!",
-        description: "כעת תוכל להשלים את פרטי הפרופיל שלך",
+        description: "ברוך הבא! כעת תוכל להגיש תלונות",
       });
       navigate("/");
     }
@@ -131,7 +155,7 @@ export default function Auth() {
 
   return (
     <main className="min-h-screen bg-background py-8 px-4">
-      <div className="container max-w-md">
+      <div className="container max-w-lg">
         <header className="text-center mb-8">
           <img
             src={kavYasharLogo}
@@ -218,7 +242,7 @@ export default function Auth() {
               <TabsContent value="signup" className="mt-6">
                 <CardTitle className="text-lg mb-2">יצירת חשבון חדש</CardTitle>
                 <CardDescription>
-                  הירשמו כדי להגיש תלונות במהירות
+                  הזינו את כל הפרטים האישיים לצורך הגשת תלונות
                 </CardDescription>
                 <CardContent className="p-0 mt-4">
                   <Form {...signUpForm}>
@@ -229,7 +253,7 @@ export default function Auth() {
                           name="firstName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>שם פרטי</FormLabel>
+                              <FormLabel>שם פרטי *</FormLabel>
                               <FormControl>
                                 <Input placeholder="שם פרטי" {...field} />
                               </FormControl>
@@ -242,7 +266,7 @@ export default function Auth() {
                           name="lastName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>שם משפחה</FormLabel>
+                              <FormLabel>שם משפחה *</FormLabel>
                               <FormControl>
                                 <Input placeholder="שם משפחה" {...field} />
                               </FormControl>
@@ -251,12 +275,98 @@ export default function Auth() {
                           )}
                         />
                       </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={signUpForm.control}
+                          name="idNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>מספר זהות *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="9 ספרות" maxLength={9} {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={signUpForm.control}
+                          name="mobile"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>מספר טלפון *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="05X-XXXXXXX" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={signUpForm.control}
+                        name="ravKavNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>מספר רב-קו</FormLabel>
+                            <FormControl>
+                              <Input placeholder="מספר רב-קו (אופציונלי)" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <FormField
+                          control={signUpForm.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>עיר מגורים *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="עיר" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={signUpForm.control}
+                          name="street"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>רחוב *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="רחוב" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={signUpForm.control}
+                          name="houseNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>מספר בית</FormLabel>
+                              <FormControl>
+                                <Input placeholder="מספר" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
                       <FormField
                         control={signUpForm.control}
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>כתובת מייל</FormLabel>
+                            <FormLabel>כתובת מייל *</FormLabel>
                             <FormControl>
                               <Input 
                                 type="email" 
@@ -268,40 +378,42 @@ export default function Auth() {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={signUpForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>סיסמה</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="password" 
-                                placeholder="לפחות 6 תווים" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={signUpForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>אישור סיסמה</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="password" 
-                                placeholder="הזינו סיסמה שוב" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={signUpForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>סיסמה *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="password" 
+                                  placeholder="לפחות 6 תווים" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={signUpForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>אישור סיסמה *</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="password" 
+                                  placeholder="הזינו שוב" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                       <Button 
                         type="submit" 
                         className="w-full" 
