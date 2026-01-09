@@ -73,7 +73,20 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    profileData: {
+      firstName: string;
+      lastName: string;
+      idNumber: string;
+      mobile: string;
+      ravKavNumber?: string;
+      city: string;
+      street: string;
+      houseNumber?: string;
+    }
+  ) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -82,8 +95,15 @@ export function useAuth() {
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          first_name: firstName,
-          last_name: lastName,
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          id_number: profileData.idNumber,
+          mobile: profileData.mobile,
+          rav_kav_number: profileData.ravKavNumber || "",
+          city: profileData.city,
+          street: profileData.street,
+          house_number: profileData.houseNumber || "",
+          profile_complete: true,
         },
       },
     });
