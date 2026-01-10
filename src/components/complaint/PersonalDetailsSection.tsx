@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { User, Lock } from "lucide-react";
 import {
@@ -10,6 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComplaintForm } from "@/types/complaint";
+import { CityAutocomplete } from "./CityAutocomplete";
+import { StreetAutocomplete } from "./StreetAutocomplete";
 
 interface PersonalDetailsSectionProps {
   form: UseFormReturn<ComplaintForm>;
@@ -17,6 +20,12 @@ interface PersonalDetailsSectionProps {
 }
 
 export function PersonalDetailsSection({ form, disabled = false }: PersonalDetailsSectionProps) {
+  const [selectedCity, setSelectedCity] = useState(form.getValues("personalDetails.city") || "");
+  
+  const handleCitySelect = (city: string) => {
+    setSelectedCity(city);
+  };
+  
   return (
     <div className="form-section animate-fade-in">
       <h2 className="form-section-title">
@@ -117,42 +126,50 @@ export function PersonalDetailsSection({ form, disabled = false }: PersonalDetai
       </div>
 
       <div className="form-grid mt-4">
-        <FormField
-          control={form.control}
-          name="personalDetails.city"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>עיר מגורים *</FormLabel>
-              <FormControl>
-                <Input placeholder="הזן עיר מגורים" {...field} disabled={disabled} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {disabled ? (
+          <FormField
+            control={form.control}
+            name="personalDetails.city"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>עיר מגורים *</FormLabel>
+                <FormControl>
+                  <Input placeholder="הזן עיר מגורים" {...field} disabled={disabled} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : (
+          <CityAutocomplete form={form} disabled={disabled} onCitySelect={handleCitySelect} />
+        )}
 
-        <FormField
-          control={form.control}
-          name="personalDetails.street"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>רחוב *</FormLabel>
-              <FormControl>
-                <Input placeholder="הזן שם רחוב" {...field} disabled={disabled} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {disabled ? (
+          <FormField
+            control={form.control}
+            name="personalDetails.street"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>רחוב *</FormLabel>
+                <FormControl>
+                  <Input placeholder="הזן שם רחוב" {...field} disabled={disabled} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : (
+          <StreetAutocomplete form={form} disabled={disabled} cityName={selectedCity} />
+        )}
 
         <FormField
           control={form.control}
           name="personalDetails.houseNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>מספר בית *</FormLabel>
+              <FormLabel>מספר בית</FormLabel>
               <FormControl>
-                <Input placeholder="מספר בית" {...field} disabled={disabled} />
+                <Input placeholder="מספר בית (אופציונלי)" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>

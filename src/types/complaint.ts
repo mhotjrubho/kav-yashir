@@ -79,7 +79,7 @@ export const personalDetailsSchema = z.object({
   ravKavNumber: z.string().optional(),
   city: z.string().min(2, "יש להזין עיר"),
   street: z.string().min(2, "יש להזין רחוב"),
-  houseNumber: z.string().min(1, "יש להזין מספר בית"),
+  houseNumber: z.string().optional().default(""),
   email: z.string().email("כתובת אימייל לא תקינה"),
   acceptUpdates: z.boolean().default(false),
   acceptPrivacy: z.boolean().refine((val) => val === true, "יש לאשר את מדיניות הפרטיות"),

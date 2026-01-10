@@ -14,6 +14,7 @@ import { FileUploadSection } from "./FileUploadSection";
 import { LineNumberSelect } from "./gtfs/LineNumberSelect";
 import { OperatorSelect } from "./gtfs/OperatorSelect";
 import { AlternativeSelect } from "./gtfs/AlternativeSelect";
+import { getTodayDateString } from "@/lib/dateTimeValidation";
 
 interface OvercrowdingComplaintProps {
   form: UseFormReturn<ComplaintForm>;
@@ -50,7 +51,7 @@ export function OvercrowdingComplaint({ form }: OvercrowdingComplaintProps) {
             <FormItem>
               <FormLabel>תאריך *</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input type="date" max={getTodayDateString()} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
