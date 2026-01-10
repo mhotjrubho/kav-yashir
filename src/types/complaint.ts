@@ -87,92 +87,92 @@ export const personalDetailsSchema = z.object({
 
 // Station-based complaint schema (no_ride, no_stop, delay, early_departure)
 export const stationBasedComplaintSchema = z.object({
-  stationNumber: z.string().min(1, "יש להזין מספר תחנה"),
-  lineNumber: z.string().min(1, "יש להזין מספר קו"),
-  arrivalTime: z.string().min(1, "יש להזין שעת הגעה לתחנה"),
-  departureTime: z.string().min(1, "יש להזין שעת עזיבה מהתחנה"),
-  eventDate: z.string().min(1, "יש להזין תאריך"),
-  description: z.string().optional(),
+  stationNumber: z.string().optional().default(""),
+  lineNumber: z.string().optional().default(""),
+  arrivalTime: z.string().optional().default(""),
+  departureTime: z.string().optional().default(""),
+  eventDate: z.string().optional().default(""),
+  description: z.string().optional().default(""),
 });
 
 // Driver behavior complaint schema
 export const driverBehaviorComplaintSchema = z.object({
-  lineNumber: z.string().min(1, "יש להזין מספר קו"),
-  operator: z.string().min(1, "יש לבחור מפעיל"),
-  alternative: z.string().optional(), // origin-destination
-  eventDate: z.string().min(1, "יש להזין תאריך"),
-  eventTime: z.string().min(1, "יש להזין שעה"),
+  lineNumber: z.string().optional().default(""),
+  operator: z.string().optional().default(""),
+  alternative: z.string().optional().default(""),
+  eventDate: z.string().optional().default(""),
+  eventTime: z.string().optional().default(""),
   isPersonalRavKav: z.boolean().default(true),
-  ravKavOrLicense: z.string().optional(),
+  ravKavOrLicense: z.string().optional().default(""),
   identifierType: z.enum(["ravkav", "license"]).optional(),
-  driverName: z.string().optional(),
-  description: z.string().min(10, "יש להזין תיאור האירוע"),
-  acceptTestimonyMinistry: z.boolean().refine((val) => val === true, "יש לאשר מסירת עדות למשרד התחבורה"),
-  acceptTestimonyCourt: z.boolean().refine((val) => val === true, "יש לאשר מסירת עדות בבית משפט"),
+  driverName: z.string().optional().default(""),
+  description: z.string().optional().default(""),
+  acceptTestimonyMinistry: z.boolean().default(false),
+  acceptTestimonyCourt: z.boolean().default(false),
 });
 
 // Add line complaint schema
 export const addLineComplaintSchema = z.object({
-  originCity: z.string().min(2, "יש להזין יישוב עלייה"),
-  destinationCity: z.string().min(2, "יש להזין יישוב יעד"),
-  description: z.string().min(10, "יש להזין תיאור הבקשה"),
+  originCity: z.string().optional().default(""),
+  destinationCity: z.string().optional().default(""),
+  description: z.string().optional().default(""),
 });
 
 // Overcrowding complaint schema
 export const overcrowdingComplaintSchema = z.object({
-  lineNumber: z.string().min(1, "יש להזין מספר קו"),
-  operator: z.string().min(1, "יש לבחור מפעיל"),
-  eventDate: z.string().min(1, "יש להזין תאריך"),
-  eventTime: z.string().min(1, "יש להזין שעה"),
-  eventLocation: z.string().min(2, "יש להזין מיקום"),
-  alternative: z.string().optional(),
-  description: z.string().optional(),
+  lineNumber: z.string().optional().default(""),
+  operator: z.string().optional().default(""),
+  eventDate: z.string().optional().default(""),
+  eventTime: z.string().optional().default(""),
+  eventLocation: z.string().optional().default(""),
+  alternative: z.string().optional().default(""),
+  description: z.string().optional().default(""),
 });
 
 // Add frequency complaint schema
 export const addFrequencyComplaintSchema = z.object({
-  lineNumber: z.string().min(1, "יש להזין מספר קו"),
-  operator: z.string().min(1, "יש לבחור מפעיל"),
-  alternative: z.string().optional(),
-  reason: z.string().min(1, "יש לבחור סיבה"),
-  eventDate: z.string().min(1, "יש להזין תאריך"),
-  startTime: z.string().min(1, "יש להזין שעת התחלה"),
-  endTime: z.string().min(1, "יש להזין שעת סיום"),
-  description: z.string().min(10, "יש להזין תיאור"),
+  lineNumber: z.string().optional().default(""),
+  operator: z.string().optional().default(""),
+  alternative: z.string().optional().default(""),
+  reason: z.string().optional().default(""),
+  eventDate: z.string().optional().default(""),
+  startTime: z.string().optional().default(""),
+  endTime: z.string().optional().default(""),
+  description: z.string().optional().default(""),
 });
 
 // Bus condition complaint schema
 export const busConditionComplaintSchema = z.object({
-  lineNumber: z.string().min(1, "יש להזין מספר קו"),
-  operator: z.string().min(1, "יש לבחור מפעיל"),
-  alternative: z.string().optional(),
-  eventDate: z.string().min(1, "יש להזין תאריך"),
-  eventTime: z.string().min(1, "יש להזין שעה"),
+  lineNumber: z.string().optional().default(""),
+  operator: z.string().optional().default(""),
+  alternative: z.string().optional().default(""),
+  eventDate: z.string().optional().default(""),
+  eventTime: z.string().optional().default(""),
   isPersonalRavKav: z.boolean().default(true),
-  ravKavOrLicense: z.string().optional(),
+  ravKavOrLicense: z.string().optional().default(""),
   identifierType: z.enum(["ravkav", "license"]).optional(),
-  issueDescription: z.string().min(10, "יש להזין תיאור התקלה"),
+  issueDescription: z.string().optional().default(""),
   tripStopped: z.boolean().default(false),
   replacementBusArrived: z.boolean().optional(),
-  replacementWaitTime: z.string().optional(),
+  replacementWaitTime: z.string().optional().default(""),
   busArrivedEmpty: z.boolean().optional(),
-  eventLocation: z.string().optional(),
-  description: z.string().optional(),
+  eventLocation: z.string().optional().default(""),
+  description: z.string().optional().default(""),
 });
 
 // License violation complaint schema
 export const licenseViolationComplaintSchema = z.object({
-  lineNumber: z.string().min(1, "יש להזין מספר קו"),
-  operator: z.string().min(1, "יש לבחור מפעיל"),
-  alternative: z.string().optional(),
-  eventDate: z.string().min(1, "יש להזין תאריך"),
-  eventTime: z.string().min(1, "יש להזין שעה"),
-  description: z.string().min(10, "יש להזין תיאור"),
+  lineNumber: z.string().optional().default(""),
+  operator: z.string().optional().default(""),
+  alternative: z.string().optional().default(""),
+  eventDate: z.string().optional().default(""),
+  eventTime: z.string().optional().default(""),
+  description: z.string().optional().default(""),
 });
 
 // Other complaint schema
 export const otherComplaintSchema = z.object({
-  description: z.string().min(10, "יש להזין תיאור מלא"),
+  description: z.string().optional().default(""),
 });
 
 // Full form schema
