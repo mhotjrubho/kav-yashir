@@ -17,6 +17,7 @@ import { FileUploadSection } from "./FileUploadSection";
 import { LineNumberSelect } from "./gtfs/LineNumberSelect";
 import { OperatorSelect } from "./gtfs/OperatorSelect";
 import { AlternativeSelect } from "./gtfs/AlternativeSelect";
+import { getTodayDateString } from "@/lib/dateTimeValidation";
 
 interface DriverBehaviorComplaintProps {
   form: UseFormReturn<ComplaintForm>;
@@ -62,7 +63,7 @@ export function DriverBehaviorComplaint({ form }: DriverBehaviorComplaintProps) 
             <FormItem>
               <FormLabel>תאריך האירוע *</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input type="date" max={getTodayDateString()} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

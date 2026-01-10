@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { MapPin } from "lucide-react";
+import { MapPin, AlertCircle } from "lucide-react";
 import {
   FormField,
   FormItem,
@@ -10,11 +10,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ComplaintForm, ComplaintType, complaintTypeLabels } from "@/types/complaint";
 import { FileUploadSection } from "./FileUploadSection";
 import { StopCodeInput } from "./gtfs/StopCodeInput";
 import { LineNumberSelect } from "./gtfs/LineNumberSelect";
 import { Stop, useGtfsValidation } from "@/hooks/useGtfsData";
+import { 
+  getTodayDateString, 
+  isDateInFuture, 
+  isTimeInFuture, 
+  isDepartureAfterArrival,
+  dateTimeErrors 
+} from "@/lib/dateTimeValidation";
 
 interface StationBasedComplaintProps {
   form: UseFormReturn<ComplaintForm>;
@@ -24,14 +32,44 @@ interface StationBasedComplaintProps {
 export function StationBasedComplaint({ form, complaintType }: StationBasedComplaintProps) {
   const [validatedStop, setValidatedStop] = useState<Stop | null>(null);
   const [linesAtStop, setLinesAtStop] = useState<string[]>([]);
+  const [timeError, setTimeError] = useState<string | null>(null);
   const { routes } = useGtfsValidation();
+
+  const eventDate = form.watch("stationBasedDetails.eventDate");
+  const arrivalTime = form.watch("stationBasedDetails.arrivalTime");
+  const departureTime = form.watch("stationBasedDetails.departureTime");
+
+  // Validate date and time
+  useEffect(() => {
+    setTimeError(null);
+    
+    // Check future date
+    if (eventDate && isDateInFuture(eventDate)) {
+      setTimeError(dateTimeErrors.futureDateNotAllowed);
+      return;
+    }
+    
+    // Check future time
+    if (eventDate && arrivalTime && isTimeInFuture(eventDate, arrivalTime)) {
+      setTimeError(dateTimeErrors.futureTimeNotAllowed);
+      return;
+    }
+    
+    if (eventDate && departureTime && isTimeInFuture(eventDate, departureTime)) {
+      setTimeError(dateTimeErrors.futureTimeNotAllowed);
+      return;
+    }
+    
+    // Check departure after arrival
+    if (arrivalTime && departureTime && !isDepartureAfterArrival(arrivalTime, departureTime)) {
+      setTimeError(dateTimeErrors.departureMustBeAfterArrival);
+      return;
+    }
+  }, [eventDate, arrivalTime, departureTime]);
 
   // When stop is validated, filter lines that pass through this stop
   useEffect(() => {
     if (validatedStop) {
-      // For now, we show all lines since we don't have stop_times.txt
-      // In a full implementation, this would filter based on stop_times
-      // Here we'll use a simple approach based on route descriptions containing the city
       const stopCity = validatedStop.city;
       if (stopCity) {
         const matchingLines = routes
@@ -58,6 +96,8 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
     form.setValue("attachments", urls);
   };
 
+  const today = getTodayDateString();
+
   return (
     <div className="form-section animate-fade-in">
       <h2 className="form-section-title">
@@ -80,6 +120,24 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <FormField
+          control={form.control}
+          name="stationBasedDetails.eventDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>תאריך האירוע *</FormLabel>
+              <FormControl>
+                <Input 
+                  type="date" 
+                  max={today}
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="stationBasedDetails.arrivalTime"
@@ -107,21 +165,14 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="stationBasedDetails.eventDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>תאריך האירוע *</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
       </div>
+
+      {timeError && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{timeError}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="mt-4">
         <FormField
