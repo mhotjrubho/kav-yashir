@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      complaints: {
+        Row: {
+          attachments: string[] | null
+          complaint_details: Json | null
+          complaint_type: string
+          created_at: string
+          id: string
+          personal_details: Json
+          reference_number: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          complaint_details?: Json | null
+          complaint_type: string
+          created_at?: string
+          id?: string
+          personal_details: Json
+          reference_number: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attachments?: string[] | null
+          complaint_details?: Json | null
+          complaint_type?: string
+          created_at?: string
+          id?: string
+          personal_details?: Json
+          reference_number?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           city: string | null

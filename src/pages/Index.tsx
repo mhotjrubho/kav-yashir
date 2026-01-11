@@ -20,6 +20,7 @@ import { SuccessMessage } from "@/components/complaint/SuccessMessage";
 import { UserHeader } from "@/components/auth/UserHeader";
 import { ComplaintForm, complaintFormSchema, ComplaintType } from "@/types/complaint";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
 
 export default function Index() {
@@ -148,6 +149,32 @@ export default function Index() {
 
   const complaintType = form.watch("complaintType") as ComplaintType;
 
+  const getComplaintDetails = (data: ComplaintForm) => {
+    switch (data.complaintType) {
+      case "no_ride":
+      case "no_stop":
+      case "delay":
+      case "early_departure":
+        return data.stationBasedDetails;
+      case "driver_behavior":
+        return data.driverBehaviorDetails;
+      case "add_line":
+        return data.addLineDetails;
+      case "overcrowding":
+        return data.overcrowdingDetails;
+      case "add_frequency":
+        return data.addFrequencyDetails;
+      case "bus_condition":
+        return data.busConditionDetails;
+      case "license_violation":
+        return data.licenseViolationDetails;
+      case "other":
+        return data.otherDetails;
+      default:
+        return null;
+    }
+  };
+
   const onSubmit = async (data: ComplaintForm) => {
     // Require authentication for complaint submission
     if (!isAuthenticated) {
@@ -162,12 +189,34 @@ export default function Index() {
 
     setIsSubmitting(true);
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       // Generate reference number
       const refNum = `KY-${Date.now().toString(36).toUpperCase()}`;
       
       console.log("Submitting complaint:", data);
       
-      // Send to webhook
+      // Save to database
+      const { error: dbError } = await supabase.from("complaints").insert({
+        user_id: user.id,
+        reference_number: refNum,
+        complaint_type: data.complaintType,
+        personal_details: data.personalDetails,
+        complaint_details: getComplaintDetails(data),
+        attachments: data.attachments || [],
+        status: "pending",
+      });
+
+      if (dbError) {
+        console.error("Database error:", dbError);
+        throw new Error("Failed to save complaint");
+      }
+      
+      // Send to webhook (optional - won't fail if webhook fails)
       try {
         await fetch("https://webhook.site/94e1aeb2-1460-4324-ab25-744066524393", {
           method: "POST",
