@@ -176,33 +176,19 @@ export default function Index() {
   };
 
   const onSubmit = async (data: ComplaintForm) => {
-    // Require authentication for complaint submission
-    if (!isAuthenticated) {
-      toast({
-        title: "נדרשת התחברות",
-        description: "יש להתחבר או להירשם כדי להגיש תלונה",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      // Get current user
+      // Get current user (may be null for anonymous submissions)
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
 
       // Generate reference number
       const refNum = `KY-${Date.now().toString(36).toUpperCase()}`;
       
       console.log("Submitting complaint:", data);
       
-      // Save to database
+      // Save to database (user_id is optional for anonymous submissions)
       const { error: dbError } = await supabase.from("complaints").insert({
-        user_id: user.id,
+        user_id: user?.id || null,
         reference_number: refNum,
         complaint_type: data.complaintType,
         personal_details: data.personalDetails,
