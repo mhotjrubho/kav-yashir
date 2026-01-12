@@ -25,7 +25,7 @@ export type Database = {
           reference_number: string
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           attachments?: string[] | null
@@ -37,7 +37,7 @@ export type Database = {
           reference_number: string
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           attachments?: string[] | null
@@ -49,7 +49,7 @@ export type Database = {
           reference_number?: string
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
