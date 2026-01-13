@@ -175,6 +175,96 @@ export default function Index() {
     }
   };
 
+  const formatComplaintDetailsHebrew = (data: ComplaintForm): Record<string, string | boolean | undefined> => {
+    switch (data.complaintType) {
+      case "no_ride":
+      case "no_stop":
+      case "delay":
+      case "early_departure":
+        return {
+          "מספר תחנה": data.stationBasedDetails?.stationNumber || "",
+          "מספר קו": data.stationBasedDetails?.lineNumber || "",
+          "שעת הגעה משוערת": data.stationBasedDetails?.arrivalTime || "",
+          "שעת יציאה בפועל": data.stationBasedDetails?.departureTime || "",
+          "תאריך האירוע": data.stationBasedDetails?.eventDate || "",
+          "תיאור": data.stationBasedDetails?.description || "",
+        };
+      case "driver_behavior":
+        return {
+          "מספר קו": data.driverBehaviorDetails?.lineNumber || "",
+          "מפעיל": data.driverBehaviorDetails?.operator || "",
+          "חלופה": data.driverBehaviorDetails?.alternative || "",
+          "תאריך האירוע": data.driverBehaviorDetails?.eventDate || "",
+          "שעת האירוע": data.driverBehaviorDetails?.eventTime || "",
+          "רב-קו אישי": data.driverBehaviorDetails?.isPersonalRavKav ? "כן" : "לא",
+          "מספר רב-קו/רישוי": data.driverBehaviorDetails?.ravKavOrLicense || "",
+          "שם הנהג": data.driverBehaviorDetails?.driverName || "",
+          "תיאור": data.driverBehaviorDetails?.description || "",
+          "מסכים להעיד במשרד התחבורה": data.driverBehaviorDetails?.acceptTestimonyMinistry ? "כן" : "לא",
+          "מסכים להעיד בבית משפט": data.driverBehaviorDetails?.acceptTestimonyCourt ? "כן" : "לא",
+        };
+      case "add_line":
+        return {
+          "עיר מוצא": data.addLineDetails?.originCity || "",
+          "עיר יעד": data.addLineDetails?.destinationCity || "",
+          "תיאור": data.addLineDetails?.description || "",
+        };
+      case "overcrowding":
+        return {
+          "מספר קו": data.overcrowdingDetails?.lineNumber || "",
+          "מפעיל": data.overcrowdingDetails?.operator || "",
+          "תאריך האירוע": data.overcrowdingDetails?.eventDate || "",
+          "שעת האירוע": data.overcrowdingDetails?.eventTime || "",
+          "מיקום האירוע": data.overcrowdingDetails?.eventLocation || "",
+          "חלופה": data.overcrowdingDetails?.alternative || "",
+          "תיאור": data.overcrowdingDetails?.description || "",
+        };
+      case "add_frequency":
+        return {
+          "מספר קו": data.addFrequencyDetails?.lineNumber || "",
+          "מפעיל": data.addFrequencyDetails?.operator || "",
+          "חלופה": data.addFrequencyDetails?.alternative || "",
+          "סיבה": data.addFrequencyDetails?.reason || "",
+          "תאריך": data.addFrequencyDetails?.eventDate || "",
+          "משעה": data.addFrequencyDetails?.startTime || "",
+          "עד שעה": data.addFrequencyDetails?.endTime || "",
+          "תיאור": data.addFrequencyDetails?.description || "",
+        };
+      case "bus_condition":
+        return {
+          "מספר קו": data.busConditionDetails?.lineNumber || "",
+          "מפעיל": data.busConditionDetails?.operator || "",
+          "חלופה": data.busConditionDetails?.alternative || "",
+          "תאריך האירוע": data.busConditionDetails?.eventDate || "",
+          "שעת האירוע": data.busConditionDetails?.eventTime || "",
+          "רב-קו אישי": data.busConditionDetails?.isPersonalRavKav ? "כן" : "לא",
+          "מספר רב-קו/רישוי": data.busConditionDetails?.ravKavOrLicense || "",
+          "תיאור התקלה": data.busConditionDetails?.issueDescription || "",
+          "הנסיעה הופסקה": data.busConditionDetails?.tripStopped ? "כן" : "לא",
+          "הגיע אוטובוס חלופי": data.busConditionDetails?.replacementBusArrived ? "כן" : "לא",
+          "זמן המתנה לאוטובוס חלופי": data.busConditionDetails?.replacementWaitTime || "",
+          "האוטובוס הגיע ריק": data.busConditionDetails?.busArrivedEmpty ? "כן" : "לא",
+          "מיקום האירוע": data.busConditionDetails?.eventLocation || "",
+          "תיאור": data.busConditionDetails?.description || "",
+        };
+      case "license_violation":
+        return {
+          "מספר קו": data.licenseViolationDetails?.lineNumber || "",
+          "מפעיל": data.licenseViolationDetails?.operator || "",
+          "חלופה": data.licenseViolationDetails?.alternative || "",
+          "תאריך האירוע": data.licenseViolationDetails?.eventDate || "",
+          "שעת האירוע": data.licenseViolationDetails?.eventTime || "",
+          "תיאור": data.licenseViolationDetails?.description || "",
+        };
+      case "other":
+        return {
+          "תיאור": data.otherDetails?.description || "",
+        };
+      default:
+        return {};
+    }
+  };
+
   const onSubmit = async (data: ComplaintForm) => {
     setIsSubmitting(true);
     try {
@@ -204,17 +294,45 @@ export default function Index() {
       
       // Send to webhook (optional - won't fail if webhook fails)
       try {
+        // Translate complaint type to Hebrew
+        const complaintTypeHebrew: Record<string, string> = {
+          no_ride: "נסיעה שלא בוצעה",
+          no_stop: "אי עצירה בתחנה",
+          delay: "איחור",
+          early_departure: "יציאה מוקדמת",
+          driver_behavior: "התנהגות נהג",
+          add_line: "הוספת קו",
+          overcrowding: "צפיפות",
+          add_frequency: "הוספת תדירות",
+          bus_condition: "מצב האוטובוס",
+          license_violation: "ביצוע שאינו מתאים לרישיון",
+          other: "אחר",
+        };
+
+        // Build Hebrew webhook payload
+        const hebrewPayload = {
+          "מספר פנייה": refNum,
+          "תאריך הגשה": new Date().toLocaleString("he-IL"),
+          "סוג תלונה": complaintTypeHebrew[data.complaintType] || data.complaintType,
+          "פרטים אישיים": {
+            "שם פרטי": data.personalDetails.firstName,
+            "שם משפחה": data.personalDetails.lastName,
+            "תעודת זהות": data.personalDetails.idNumber,
+            "טלפון נייד": data.personalDetails.mobile,
+            "מספר רב-קו": data.personalDetails.ravKavNumber || "",
+            "אימייל": data.personalDetails.email,
+            "עיר": data.personalDetails.city,
+            "רחוב": data.personalDetails.street,
+            "מספר בית": data.personalDetails.houseNumber,
+          },
+          "פרטי התלונה": formatComplaintDetailsHebrew(data),
+        };
+
         await fetch("https://script.google.com/macros/s/AKfycbyOK2lcmear68A9SGiSDhxkcQXkmrYz0hqkARlx9e3XtZFypcQg_G03_lCyQ2YkgtVYaQ/exec", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           mode: "no-cors",
-          body: JSON.stringify({
-            referenceNumber: refNum,
-            submittedAt: new Date().toISOString(),
-            complaintType: data.complaintType,
-            personalDetails: data.personalDetails,
-            ...data,
-          }),
+          body: JSON.stringify(hebrewPayload),
         });
       } catch (webhookError) {
         console.error("Webhook error:", webhookError);
