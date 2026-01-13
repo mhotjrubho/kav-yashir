@@ -309,23 +309,33 @@ export default function Index() {
           other: "אחר",
         };
 
-        // Build Hebrew webhook payload
+        // Build flat Hebrew webhook payload with ordered columns
+        const stationBasedTypes = ["no_ride", "no_stop", "delay", "early_departure"];
+        const isStationBased = stationBasedTypes.includes(data.complaintType);
+        const stationDetails = data.stationBasedDetails;
+        const otherDetails = getComplaintDetails(data) as Record<string, string> | null;
+
         const hebrewPayload = {
-          "מספר פנייה": refNum,
-          "תאריך הגשה": new Date().toLocaleString("he-IL"),
+          "תאריך ושעת קבלה": new Date().toLocaleString("he-IL"),
+          "שם פרטי": data.personalDetails.firstName,
+          "שם משפחה": data.personalDetails.lastName,
+          "מספר זהות": data.personalDetails.idNumber,
+          "מספר רב-קו": data.personalDetails.ravKavNumber || "",
+          "כתובת מייל": data.personalDetails.email,
           "סוג תלונה": complaintTypeHebrew[data.complaintType] || data.complaintType,
-          "פרטים אישיים": {
-            "שם פרטי": data.personalDetails.firstName,
-            "שם משפחה": data.personalDetails.lastName,
-            "תעודת זהות": data.personalDetails.idNumber,
-            "טלפון נייד": data.personalDetails.mobile,
-            "מספר רב-קו": data.personalDetails.ravKavNumber || "",
-            "אימייל": data.personalDetails.email,
-            "עיר": data.personalDetails.city,
-            "רחוב": data.personalDetails.street,
-            "מספר בית": data.personalDetails.houseNumber,
-          },
-          "פרטי התלונה": formatComplaintDetailsHebrew(data),
+          "מספר תחנה": isStationBased ? stationDetails?.stationNumber || "" : "",
+          "שם תחנה": "", // יתווסף בהמשך
+          "עיר תחנה": "", // יתווסף בהמשך
+          "מספר קו": isStationBased ? stationDetails?.lineNumber || "" : otherDetails?.lineNumber || "",
+          "חברת קו": otherDetails?.operator || "",
+          "תאריך": isStationBased ? stationDetails?.eventDate || "" : otherDetails?.eventDate || "",
+          "שעת הגעה לתחנה": isStationBased ? stationDetails?.arrivalTime || "" : "",
+          "שעת עזיבה תחנה": isStationBased ? stationDetails?.departureTime || "" : "",
+          "תיאור המקרה": isStationBased ? stationDetails?.description || "" : otherDetails?.description || "",
+          "קבצים מצורפים": (data.attachments || []).join(", "),
+          "קוד פניה": refNum,
+          "סטטוס": "",
+          "קבצי תגובה ממשרד התחבורה": "",
         };
 
         await fetch("https://script.google.com/macros/s/AKfycbyOK2lcmear68A9SGiSDhxkcQXkmrYz0hqkARlx9e3XtZFypcQg_G03_lCyQ2YkgtVYaQ/exec", {
