@@ -204,7 +204,7 @@ export default function Index() {
       
       // Send to webhook (optional - won't fail if webhook fails)
       try {
-        await fetch("https://webhook.site/94e1aeb2-1460-4324-ab25-744066524393", {
+        await fetch("https://script.google.com/macros/s/AKfycbyOK2lcmear68A9SGiSDhxkcQXkmrYz0hqkARlx9e3XtZFypcQg_G03_lCyQ2YkgtVYaQ/exec", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           mode: "no-cors",
