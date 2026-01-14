@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Bus, Search } from "lucide-react";
+import { Bus, Search, X } from "lucide-react";
 import {
   FormField,
   FormItem,
@@ -8,7 +8,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Command,
   CommandEmpty,
@@ -64,6 +63,12 @@ export function LineNumberSelect({
       .slice(0, 50);
   }, [linesToShow, search]);
 
+  const handleClear = (e: React.MouseEvent, onChange: (value: string) => void) => {
+    e.stopPropagation();
+    onChange("");
+    onLineSelected?.("");
+  };
+
   return (
     <FormField
       control={form.control}
@@ -85,9 +90,15 @@ export function LineNumberSelect({
                   disabled={loading}
                 >
                   {field.value ? (
-                    <span className="flex items-center gap-2">
-                      <Bus className="h-4 w-4" />
-                      קו {field.value}
+                    <span className="flex items-center gap-2 w-full justify-between">
+                      <span className="flex items-center gap-2">
+                        <Bus className="h-4 w-4" />
+                        קו {field.value}
+                      </span>
+                      <X 
+                        className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-pointer"
+                        onClick={(e) => handleClear(e, field.onChange)}
+                      />
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">

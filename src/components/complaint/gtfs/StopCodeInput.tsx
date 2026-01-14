@@ -34,12 +34,14 @@ interface StopCodeInputProps {
   form: UseFormReturn<ComplaintForm>;
   fieldPath: "stationBasedDetails.stationNumber";
   onStopValidated?: (stop: Stop | null) => void;
+  availableStops?: Stop[]; // Optional filter for stops on a specific line
 }
 
 export function StopCodeInput({
   form,
   fieldPath,
   onStopValidated,
+  availableStops,
 }: StopCodeInputProps) {
   const { getStopByCode, searchStopsByName, loading } = useGtfsValidation();
   const [validatedStop, setValidatedStop] = useState<Stop | null>(null);
@@ -64,13 +66,23 @@ export function StopCodeInput({
     setIsValidating(true);
     const timer = setTimeout(() => {
       const stop = getStopByCode(stopCode);
+      // If we have filtered stops, validate against that list
+      if (stop && availableStops && availableStops.length > 0) {
+        const isInFilteredList = availableStops.some(s => s.stop_code === stopCode);
+        if (!isInFilteredList) {
+          setValidatedStop(null);
+          onStopValidated?.(null);
+          setIsValidating(false);
+          return;
+        }
+      }
       setValidatedStop(stop || null);
       onStopValidated?.(stop || null);
       setIsValidating(false);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [stopCode, loading, getStopByCode, onStopValidated, searchMode]);
+  }, [stopCode, loading, getStopByCode, onStopValidated, searchMode, availableStops]);
 
   // Name search effect
   useEffect(() => {
@@ -80,12 +92,24 @@ export function StopCodeInput({
     }
 
     const timer = setTimeout(() => {
-      const results = searchStopsByName(nameSearchQuery, 30);
-      setSearchResults(results);
+      // If we have filtered stops, search within those
+      if (availableStops && availableStops.length > 0) {
+        const query = nameSearchQuery.toLowerCase();
+        const results = availableStops
+          .filter(stop => 
+            stop.stop_name.toLowerCase().includes(query) ||
+            stop.city?.toLowerCase().includes(query)
+          )
+          .slice(0, 30);
+        setSearchResults(results);
+      } else {
+        const results = searchStopsByName(nameSearchQuery, 30);
+        setSearchResults(results);
+      }
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [nameSearchQuery, loading, searchStopsByName]);
+  }, [nameSearchQuery, loading, searchStopsByName, availableStops]);
 
   const handleStopSelect = useCallback(
     (stop: Stop) => {
@@ -103,6 +127,14 @@ export function StopCodeInput({
     setValidatedStop(null);
     onStopValidated?.(null);
     form.setValue(fieldPath, "");
+  };
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setValidatedStop(null);
+    onStopValidated?.(null);
+    form.setValue(fieldPath, "");
+    setNameSearchQuery("");
   };
 
   const isValid = validatedStop !== null;
@@ -143,14 +175,23 @@ export function StopCodeInput({
                   placeholder="הזן מספר תחנה (לדוגמה: 38831)"
                   {...field}
                   className={cn(
-                    "pl-10",
+                    "pl-16",
                     showValidation &&
                       (isValid
                         ? "border-green-500 focus-visible:ring-green-500"
                         : "border-red-500 focus-visible:ring-red-500")
                   )}
                 />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {field.value && (
+                    <button
+                      type="button"
+                      onClick={handleClear}
+                      className="p-0.5 hover:bg-muted rounded"
+                    >
+                      <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                    </button>
+                  )}
                   {loading || isValidating ? (
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   ) : showValidation ? (
@@ -177,10 +218,16 @@ export function StopCodeInput({
                     )}
                   >
                     {validatedStop ? (
-                      <span className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-green-500" />
-                        {validatedStop.stop_name}
-                        {validatedStop.city && ` (${validatedStop.city})`}
+                      <span className="flex items-center gap-2 w-full justify-between">
+                        <span className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-green-500" />
+                          {validatedStop.stop_name}
+                          {validatedStop.city && ` (${validatedStop.city})`}
+                        </span>
+                        <X 
+                          className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                          onClick={handleClear}
+                        />
                       </span>
                     ) : (
                       <span className="text-muted-foreground">
