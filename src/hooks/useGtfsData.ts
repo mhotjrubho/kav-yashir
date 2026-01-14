@@ -152,6 +152,21 @@ export function useGtfsValidation() {
     return (code: string) => stopCodes.has(code);
   }, [stops]);
 
+  // Search stops by name
+  const searchStopsByName = useMemo(() => {
+    return (query: string, limit: number = 20) => {
+      if (!query || query.length < 2) return [];
+      const lowerQuery = query.toLowerCase();
+      return stops
+        .filter(
+          (stop) =>
+            stop.stop_name.toLowerCase().includes(lowerQuery) ||
+            stop.city?.toLowerCase().includes(lowerQuery)
+        )
+        .slice(0, limit);
+    };
+  }, [stops]);
+
   // Get unique line numbers
   const allLineNumbers = useMemo(() => {
     const lineSet = new Set<string>();
@@ -253,6 +268,7 @@ export function useGtfsValidation() {
     loading,
     getStopByCode,
     isValidStopCode,
+    searchStopsByName,
     allLineNumbers,
     getRoutesByLineNumber,
     getOperatorsForLine,
