@@ -31,9 +31,11 @@ interface StationBasedComplaintProps {
 
 export function StationBasedComplaint({ form, complaintType }: StationBasedComplaintProps) {
   const [validatedStop, setValidatedStop] = useState<Stop | null>(null);
+  const [selectedLine, setSelectedLine] = useState<string>("");
   const [linesAtStop, setLinesAtStop] = useState<string[]>([]);
+  const [stopsForLine, setStopsForLine] = useState<Stop[]>([]);
   const [timeError, setTimeError] = useState<string | null>(null);
-  const { routes } = useGtfsValidation();
+  const { routes, getCitiesForLine, getStopsForLine } = useGtfsValidation();
 
   const eventDate = form.watch("stationBasedDetails.eventDate");
   const arrivalTime = form.watch("stationBasedDetails.arrivalTime");
@@ -82,15 +84,43 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
             return numA - numB;
           });
         setLinesAtStop(matchingLines);
+        
+        // Check if selected line is still valid for this stop
+        if (selectedLine && !matchingLines.includes(selectedLine)) {
+          setSelectedLine("");
+          form.setValue("stationBasedDetails.lineNumber", "");
+        }
       } else {
         setLinesAtStop([]);
       }
-      // Clear line number when stop changes
-      form.setValue("stationBasedDetails.lineNumber", "");
     } else {
       setLinesAtStop([]);
     }
-  }, [validatedStop, routes, form]);
+  }, [validatedStop, routes, form, selectedLine]);
+
+  // When line is selected, filter stops that are on this line
+  useEffect(() => {
+    if (selectedLine) {
+      const stops = getStopsForLine(selectedLine);
+      setStopsForLine(stops);
+      
+      // Check if current stop is still valid for this line
+      if (validatedStop && stops.length > 0) {
+        const isStopValid = stops.some(s => s.stop_code === validatedStop.stop_code);
+        if (!isStopValid) {
+          setValidatedStop(null);
+          form.setValue("stationBasedDetails.stationNumber", "");
+        }
+      }
+    } else {
+      setStopsForLine([]);
+    }
+  }, [selectedLine, getStopsForLine, validatedStop, form]);
+
+  // Handle line selection
+  const handleLineSelected = (lineNumber: string) => {
+    setSelectedLine(lineNumber);
+  };
 
   const handleFilesChange = (urls: string[]) => {
     form.setValue("attachments", urls);
@@ -110,12 +140,14 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
           form={form}
           fieldPath="stationBasedDetails.stationNumber"
           onStopValidated={setValidatedStop}
+          availableStops={stopsForLine.length > 0 ? stopsForLine : undefined}
         />
 
         <LineNumberSelect
           form={form}
           fieldPath="stationBasedDetails.lineNumber"
-          availableLines={linesAtStop}
+          availableLines={linesAtStop.length > 0 ? linesAtStop : undefined}
+          onLineSelected={handleLineSelected}
         />
       </div>
 

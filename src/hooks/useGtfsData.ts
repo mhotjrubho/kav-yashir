@@ -261,6 +261,18 @@ export function useGtfsValidation() {
     };
   }, [getRoutesByLineNumber]);
 
+  // Get stops for a line (by city)
+  const getStopsForLine = useMemo(() => {
+    return (lineNumber: string) => {
+      if (!lineNumber) return [];
+      const cities = getCitiesForLine(lineNumber);
+      if (cities.length === 0) return stops;
+      return stops.filter((stop) => 
+        cities.some((city) => stop.city?.includes(city) || city.includes(stop.city || ""))
+      );
+    };
+  }, [getCitiesForLine, stops]);
+
   return {
     stops,
     routes,
@@ -274,5 +286,6 @@ export function useGtfsValidation() {
     getOperatorsForLine,
     getAlternatives,
     getCitiesForLine,
+    getStopsForLine,
   };
 }
