@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -43,10 +43,18 @@ export function UserHeader() {
           שלום, {profile?.first_name || "משתמש"}
         </span>
       </div>
-      <Button variant="ghost" size="sm" onClick={handleSignOut}>
-        <LogOut className="ml-2 h-4 w-4" />
-        התנתקות
-      </Button>
+      <div className="flex items-center gap-2">
+        <Link to="/profile">
+          <Button variant="ghost" size="sm">
+            <Settings className="ml-2 h-4 w-4" />
+            הפרופיל שלי
+          </Button>
+        </Link>
+        <Button variant="ghost" size="sm" onClick={handleSignOut}>
+          <LogOut className="ml-2 h-4 w-4" />
+          התנתקות
+        </Button>
+      </div>
     </div>
   );
 }

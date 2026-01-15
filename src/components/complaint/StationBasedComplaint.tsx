@@ -69,6 +69,10 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
     }
   }, [eventDate, arrivalTime, departureTime]);
 
+  // Station name and city for display
+  const stationName = validatedStop?.stop_name || "";
+  const stationCity = validatedStop?.city || "";
+
   // When stop is validated, filter lines that pass through this stop
   useEffect(() => {
     if (validatedStop) {
@@ -150,6 +154,20 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
           onLineSelected={handleLineSelected}
         />
       </div>
+
+      {/* Display station name and city */}
+      {validatedStop && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-muted/50 rounded-lg">
+          <div>
+            <span className="text-sm font-medium text-muted-foreground">שם תחנה:</span>
+            <p className="text-sm font-medium">{stationName}</p>
+          </div>
+          <div>
+            <span className="text-sm font-medium text-muted-foreground">עיר תחנה:</span>
+            <p className="text-sm font-medium">{stationCity || "לא ידוע"}</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
         <FormField

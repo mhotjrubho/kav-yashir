@@ -142,9 +142,9 @@ export function BusConditionComplaint({ form }: BusConditionComplaintProps) {
               name="busConditionDetails.ravKavOrLicense"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>מספר רב-קו / מספר רישוי</FormLabel>
+                  <FormLabel>מספר רב-קו / מספר רישוי *</FormLabel>
                   <FormControl>
-                    <Input placeholder="הזן מספר" {...field} />
+                    <Input placeholder="הזן מספר (שדה חובה)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
