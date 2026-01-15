@@ -158,6 +158,15 @@ export const busConditionComplaintSchema = z.object({
   busArrivedEmpty: z.boolean().optional(),
   eventLocation: z.string().optional().default(""),
   description: z.string().optional().default(""),
+}).superRefine((data, ctx) => {
+  // If not using personal rav-kav, require ravKavOrLicense
+  if (!data.isPersonalRavKav && (!data.ravKavOrLicense || data.ravKavOrLicense.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "יש להזין מספר רב-קו או מספר רישוי",
+      path: ["ravKavOrLicense"],
+    });
+  }
 });
 
 // License violation complaint schema

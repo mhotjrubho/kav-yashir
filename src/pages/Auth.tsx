@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LogIn, UserPlus, ArrowRight } from "lucide-react";
+import { LogIn, UserPlus, ArrowRight, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,6 +26,10 @@ import { toast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { validateIsraeliId } from "@/lib/israeliIdValidator";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
+import { AuthCityAutocomplete } from "@/components/auth/AuthCityAutocomplete";
+import { AuthStreetAutocomplete } from "@/components/auth/AuthStreetAutocomplete";
+
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyOK2lcmear68A9SGiSDhxkcQXkmrYz0hqkARlx9e3XtZFypcQg_G03_lCyQ2YkgtVYaQ/exec";
 
 const loginSchema = z.object({
   email: z.string().email("כתובת מייל לא תקינה"),
@@ -58,6 +62,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const { signIn, signUp, isAuthenticated, loading } = useAuthContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCity, setSelectedCity] = useState("");
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -89,6 +94,11 @@ export default function Auth() {
       navigate("/");
     }
   }, [isAuthenticated, loading, navigate]);
+
+  const handleCitySelect = (city: string) => {
+    setSelectedCity(city);
+    signUpForm.setValue("street", "");
+  };
 
   const handleLogin = async (data: LoginFormData) => {
     setIsSubmitting(true);
@@ -137,6 +147,32 @@ export default function Auth() {
         variant: "destructive",
       });
     } else {
+      // Send webhook for new user registration
+      try {
+        const webhookPayload = {
+          type: "new_user_registration",
+          "תאריך הרשמה": new Date().toLocaleString("he-IL"),
+          "שם פרטי": data.firstName,
+          "שם משפחה": data.lastName,
+          "מספר זהות": data.idNumber,
+          "טלפון": data.mobile,
+          "מספר רב-קו": data.ravKavNumber || "",
+          "עיר": data.city,
+          "רחוב": data.street,
+          "מספר בית": data.houseNumber || "",
+          "אימייל": data.email,
+        };
+
+        await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          mode: "no-cors",
+          body: JSON.stringify(webhookPayload),
+        });
+      } catch (webhookError) {
+        console.error("Webhook error:", webhookError);
+      }
+
       toast({
         title: "נרשמת בהצלחה!",
         description: "ברוך הבא! כעת תוכל להגיש תלונות",
@@ -169,6 +205,15 @@ export default function Auth() {
             התחברו כדי להגיש תלונות למשרד התחבורה
           </p>
         </header>
+
+        <div className="mb-4 text-center">
+          <Link to="/">
+            <Button variant="outline" size="sm">
+              <Home className="ml-2 h-4 w-4" />
+              המשך כאורח (ללא רישום)
+            </Button>
+          </Link>
+        </div>
 
         <Card>
           <CardHeader className="pb-4">
@@ -320,31 +365,15 @@ export default function Auth() {
                       />
 
                       <div className="grid grid-cols-3 gap-4">
-                        <FormField
-                          control={signUpForm.control}
-                          name="city"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>עיר מגורים *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="עיר" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                        <AuthCityAutocomplete
+                          form={signUpForm}
+                          fieldName="city"
+                          onCitySelect={handleCitySelect}
                         />
-                        <FormField
-                          control={signUpForm.control}
-                          name="street"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>רחוב *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="רחוב" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                        <AuthStreetAutocomplete
+                          form={signUpForm}
+                          fieldName="street"
+                          cityName={selectedCity}
                         />
                         <FormField
                           control={signUpForm.control}

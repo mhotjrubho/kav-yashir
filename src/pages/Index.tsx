@@ -271,8 +271,11 @@ export default function Index() {
       // Get current user (may be null for anonymous submissions)
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Generate reference number
-      const refNum = `KY-${Date.now().toString(36).toUpperCase()}`;
+      // Generate reference number starting from 41800
+      const baseNumber = 41800;
+      const timestamp = Date.now();
+      const randomPart = Math.floor(Math.random() * 1000);
+      const refNum = String(baseNumber + (timestamp % 100000) + randomPart);
       
       console.log("Submitting complaint:", data);
       
@@ -456,7 +459,7 @@ export default function Index() {
         {/* Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <PersonalDetailsSection form={form} disabled={isProfileComplete} />
+            {!isProfileComplete && <PersonalDetailsSection form={form} disabled={false} />}
             <ComplaintTypeSelector form={form} />
             {renderComplaintForm()}
 
