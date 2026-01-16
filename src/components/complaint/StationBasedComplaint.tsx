@@ -16,6 +16,7 @@ import { FileUploadSection } from "./FileUploadSection";
 import { StopCodeInput } from "./gtfs/StopCodeInput";
 import { LineNumberSelect } from "./gtfs/LineNumberSelect";
 import { Stop, useGtfsValidation } from "@/hooks/useGtfsData";
+import { useStopRoutes } from "@/hooks/useStopRoutes";
 import { 
   getTodayDateString, 
   isDateInFuture, 
@@ -35,7 +36,8 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
   const [linesAtStop, setLinesAtStop] = useState<string[]>([]);
   const [stopsForLine, setStopsForLine] = useState<Stop[]>([]);
   const [timeError, setTimeError] = useState<string | null>(null);
-  const { routes, getCitiesForLine, getStopsForLine } = useGtfsValidation();
+  const { stops } = useGtfsValidation();
+  const { getRoutesForStop, getStopsForRoute, loading: stopRoutesLoading } = useStopRoutes();
 
   const eventDate = form.watch("stationBasedDetails.eventDate");
   const arrivalTime = form.watch("stationBasedDetails.arrivalTime");
@@ -73,24 +75,21 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
   const stationName = validatedStop?.stop_name || "";
   const stationCity = validatedStop?.city || "";
 
-  // When stop is validated, filter lines that pass through this stop
+  // When stop is validated, get lines from stop_to_routes.csv
   useEffect(() => {
-    if (validatedStop) {
-      const stopCity = validatedStop.city;
-      if (stopCity) {
-        const matchingLines = routes
-          .filter(route => route.route_long_name?.includes(stopCity))
-          .map(route => route.route_short_name)
-          .filter((line, index, arr) => arr.indexOf(line) === index)
-          .sort((a, b) => {
-            const numA = parseInt(a) || 0;
-            const numB = parseInt(b) || 0;
-            return numA - numB;
-          });
-        setLinesAtStop(matchingLines);
+    if (validatedStop && !stopRoutesLoading) {
+      // Use stop_id to get routes
+      const routesAtStop = getRoutesForStop(validatedStop.stop_id);
+      if (routesAtStop.length > 0) {
+        const sortedLines = [...routesAtStop].sort((a, b) => {
+          const numA = parseInt(a) || 0;
+          const numB = parseInt(b) || 0;
+          return numA - numB;
+        });
+        setLinesAtStop(sortedLines);
         
         // Check if selected line is still valid for this stop
-        if (selectedLine && !matchingLines.includes(selectedLine)) {
+        if (selectedLine && !sortedLines.includes(selectedLine)) {
           setSelectedLine("");
           form.setValue("stationBasedDetails.lineNumber", "");
         }
@@ -100,26 +99,28 @@ export function StationBasedComplaint({ form, complaintType }: StationBasedCompl
     } else {
       setLinesAtStop([]);
     }
-  }, [validatedStop, routes, form, selectedLine]);
+  }, [validatedStop, stopRoutesLoading, getRoutesForStop, form, selectedLine]);
 
   // When line is selected, filter stops that are on this line
   useEffect(() => {
-    if (selectedLine) {
-      const stops = getStopsForLine(selectedLine);
-      setStopsForLine(stops);
-      
-      // Check if current stop is still valid for this line
-      if (validatedStop && stops.length > 0) {
-        const isStopValid = stops.some(s => s.stop_code === validatedStop.stop_code);
-        if (!isStopValid) {
+    if (selectedLine && !stopRoutesLoading) {
+      const stopIdsForLine = getStopsForRoute(selectedLine);
+      if (stopIdsForLine.length > 0) {
+        const filteredStops = stops.filter(stop => stopIdsForLine.includes(stop.stop_id));
+        setStopsForLine(filteredStops);
+        
+        // Check if current stop is still valid for this line
+        if (validatedStop && !stopIdsForLine.includes(validatedStop.stop_id)) {
           setValidatedStop(null);
           form.setValue("stationBasedDetails.stationNumber", "");
         }
+      } else {
+        setStopsForLine([]);
       }
     } else {
       setStopsForLine([]);
     }
-  }, [selectedLine, getStopsForLine, validatedStop, form]);
+  }, [selectedLine, stopRoutesLoading, getStopsForRoute, stops, validatedStop, form]);
 
   // Handle line selection
   const handleLineSelected = (lineNumber: string) => {

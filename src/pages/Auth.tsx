@@ -190,7 +190,7 @@ export default function Auth() {
   }
 
   return (
-    <main className="min-h-screen bg-background py-8 px-4">
+    <main className="min-h-screen bg-background py-8 px-4" dir="rtl">
       <div className="container max-w-lg">
         <header className="text-center mb-8">
           <img
