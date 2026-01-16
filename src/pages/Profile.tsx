@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { User, Save, ArrowRight, FileText, Clock, CheckCircle, AlertCircle, Home } from "lucide-react";
+import { User, Save, ArrowRight, FileText, Clock, CheckCircle, AlertCircle, Home, ChevronDown, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,7 +24,12 @@ import { CityAutocomplete } from "@/components/complaint/CityAutocomplete";
 import { StreetAutocomplete } from "@/components/complaint/StreetAutocomplete";
 import { ComplaintForm as ComplaintFormType } from "@/types/complaint";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface Complaint {
   id: string;
@@ -32,6 +37,9 @@ interface Complaint {
   complaint_type: string;
   status: string;
   created_at: string;
+  personal_details: unknown;
+  complaint_details: unknown;
+  attachments: string[] | null;
 }
 
 const profileSchema = z.object({
@@ -142,7 +150,7 @@ export default function Profile() {
       try {
         const { data, error } = await supabase
           .from("complaints")
-          .select("id, reference_number, complaint_type, status, created_at")
+          .select("id, reference_number, complaint_type, status, created_at, personal_details, complaint_details, attachments")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
@@ -194,7 +202,7 @@ export default function Profile() {
   }
 
   return (
-    <main className="min-h-screen bg-background py-8 px-4">
+    <main className="min-h-screen bg-background py-8 px-4" dir="rtl">
       <div className="container max-w-2xl">
         <header className="text-center mb-8">
           <img
@@ -378,42 +386,122 @@ export default function Profile() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-4">
+              <Accordion type="single" collapsible className="w-full">
                 {complaints.map((complaint) => {
                   const statusInfo = statusLabels[complaint.status] || statusLabels.pending;
                   const StatusIcon = statusInfo.icon;
+                  const details = complaint.complaint_details as Record<string, unknown> | null;
                   
                   return (
-                    <div 
-                      key={complaint.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">
-                            {complaintTypeLabels[complaint.complaint_type] || complaint.complaint_type}
-                          </span>
-                          <Badge variant="outline" className={statusInfo.color}>
-                            <StatusIcon className="h-3 w-3 ml-1" />
-                            {statusInfo.label}
-                          </Badge>
+                    <AccordionItem key={complaint.id} value={complaint.id}>
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center gap-3 text-right w-full">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium">
+                                {complaintTypeLabels[complaint.complaint_type] || complaint.complaint_type}
+                              </span>
+                              <Badge variant="outline" className={statusInfo.color}>
+                                <StatusIcon className="h-3 w-3 ml-1" />
+                                {statusInfo.label}
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              <span>מספר פניה: {complaint.reference_number}</span>
+                              <span className="mx-2">•</span>
+                              <span>
+                                {new Date(complaint.created_at).toLocaleDateString("he-IL", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          <span>מספר פניה: {complaint.reference_number}</span>
-                          <span className="mx-2">•</span>
-                          <span>
-                            {new Date(complaint.created_at).toLocaleDateString("he-IL", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
-                          </span>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="pt-4 space-y-4">
+                          {/* Complaint Details */}
+                          {details && Object.keys(details).length > 0 && (
+                            <div className="bg-muted/50 rounded-lg p-4">
+                              <h4 className="font-medium mb-3">פרטי התלונה</h4>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                {Object.entries(details).map(([key, value]) => {
+                                  if (value === undefined || value === null || value === "") return null;
+                                  const hebrewLabels: Record<string, string> = {
+                                    stationNumber: "מספר תחנה",
+                                    lineNumber: "מספר קו",
+                                    arrivalTime: "שעת הגעה",
+                                    departureTime: "שעת עזיבה",
+                                    eventDate: "תאריך האירוע",
+                                    eventTime: "שעת האירוע",
+                                    description: "תיאור",
+                                    operator: "מפעיל",
+                                    alternative: "חלופה",
+                                    driverName: "שם הנהג",
+                                    isPersonalRavKav: "רב-קו אישי",
+                                    ravKavOrLicense: "מספר רב-קו/רישוי",
+                                    issueDescription: "תיאור התקלה",
+                                    eventLocation: "מיקום",
+                                    originCity: "עיר מוצא",
+                                    destinationCity: "עיר יעד",
+                                    reason: "סיבה",
+                                    startTime: "משעה",
+                                    endTime: "עד שעה",
+                                  };
+                                  return (
+                                    <div key={key}>
+                                      <span className="text-muted-foreground">{hebrewLabels[key] || key}: </span>
+                                      <span className="font-medium">
+                                        {typeof value === "boolean" ? (value ? "כן" : "לא") : String(value)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Attachments */}
+                          {complaint.attachments && complaint.attachments.length > 0 && (
+                            <div className="bg-muted/50 rounded-lg p-4">
+                              <h4 className="font-medium mb-3 flex items-center gap-2">
+                                <Paperclip className="h-4 w-4" />
+                                קבצים מצורפים
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {complaint.attachments.map((url, idx) => (
+                                  <a 
+                                    key={idx}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                                  >
+                                    <FileText className="h-3 w-3" />
+                                    קובץ {idx + 1}
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Ministry Response placeholder */}
+                          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                            <h4 className="font-medium mb-2 text-blue-800">תגובת משרד התחבורה</h4>
+                            <p className="text-sm text-blue-700">
+                              {complaint.status === "resolved" 
+                                ? "התלונה טופלה. קבצי תגובה יוצגו כאן בהמשך."
+                                : "טרם התקבלה תגובה ממשרד התחבורה."}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      </AccordionContent>
+                    </AccordionItem>
                   );
                 })}
-              </div>
+              </Accordion>
             )}
           </CardContent>
         </Card>

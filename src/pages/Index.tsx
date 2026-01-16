@@ -137,6 +137,8 @@ export default function Index() {
       form.setValue("personalDetails.city", profile.city || "");
       form.setValue("personalDetails.street", profile.street || "");
       form.setValue("personalDetails.houseNumber", profile.house_number || "");
+      // Auto-accept privacy for authenticated users with complete profile
+      form.setValue("personalDetails.acceptPrivacy", true);
     }
   }, [profile, isProfileComplete, form]);
 
@@ -459,7 +461,7 @@ export default function Index() {
         {/* Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {!isProfileComplete && <PersonalDetailsSection form={form} disabled={false} />}
+            {!isAuthenticated && <PersonalDetailsSection form={form} disabled={false} />}
             <ComplaintTypeSelector form={form} />
             {renderComplaintForm()}
 
