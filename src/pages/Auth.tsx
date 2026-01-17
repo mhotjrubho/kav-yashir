@@ -209,7 +209,7 @@ export default function Auth() {
         <div className="mb-4 text-center">
           <Link to="/">
             <Button variant="outline" size="sm">
-              <Home className="ml-2 h-4 w-4" />
+              <Home className="me-2 h-4 w-4" />
               המשך כאורח (ללא רישום)
             </Button>
           </Link>
@@ -246,8 +246,10 @@ export default function Auth() {
                             <FormControl>
                               <Input 
                                 type="email" 
-                                placeholder="example@email.com" 
-                                {...field} 
+                                placeholder="example@email.com"
+                                dir="ltr"
+                                className="text-left"
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />
@@ -263,7 +265,9 @@ export default function Auth() {
                             <FormControl>
                               <Input 
                                 type="password" 
-                                placeholder="הזינו סיסמה" 
+                                placeholder="הזינו סיסמה"
+                                dir="ltr"
+                                className="text-left"
                                 {...field} 
                               />
                             </FormControl>
@@ -277,7 +281,7 @@ export default function Auth() {
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? "מתחבר..." : "התחברות"}
-                        <ArrowRight className="mr-2 h-4 w-4" />
+                        <ArrowRight className="ms-2 h-4 w-4 rotate-180" />
                       </Button>
                     </form>
                   </Form>
@@ -399,7 +403,9 @@ export default function Auth() {
                             <FormControl>
                               <Input 
                                 type="email" 
-                                placeholder="example@email.com" 
+                                placeholder="example@email.com"
+                                dir="ltr"
+                                className="text-left"
                                 {...field} 
                               />
                             </FormControl>
@@ -413,16 +419,18 @@ export default function Auth() {
                           name="password"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>סיסמה *</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="password" 
-                                  placeholder="לפחות 6 תווים" 
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                            <FormLabel>סיסמה *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="password" 
+                                placeholder="לפחות 6 תווים"
+                                dir="ltr"
+                                className="text-left"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                           )}
                         />
                         <FormField
@@ -430,26 +438,28 @@ export default function Auth() {
                           name="confirmPassword"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>אישור סיסמה *</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="password" 
-                                  placeholder="הזינו שוב" 
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                            <FormLabel>אישור סיסמה *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="password" 
+                                placeholder="הזינו שוב"
+                                dir="ltr"
+                                className="text-left"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                           )}
                         />
                       </div>
                       <Button 
                         type="submit" 
-                        className="w-full" 
+                        className="w-full"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? "נרשם..." : "הרשמה"}
-                        <ArrowRight className="mr-2 h-4 w-4" />
+                        <ArrowRight className="ms-2 h-4 w-4 rotate-180" />
                       </Button>
                     </form>
                   </Form>

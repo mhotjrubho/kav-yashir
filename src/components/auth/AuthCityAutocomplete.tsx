@@ -78,13 +78,14 @@ export function AuthCityAutocomplete({
                       }
                     }}
                     disabled={disabled}
-                    className="pr-10"
+                    className="pe-10"
+                    dir="rtl"
                   />
-                  <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <MapPin className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0" align="start">
+            <PopoverContent className="w-[300px] p-0" align="end" dir="rtl">
               <Command>
                 <CommandList>
                   {isLoading ? (
