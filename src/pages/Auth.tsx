@@ -215,17 +215,17 @@ export default function Auth() {
           </Link>
         </div>
 
-        <Card>
+        <Card dir="rtl">
           <CardHeader className="pb-4">
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs defaultValue="login" className="w-full" dir="rtl">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login" className="gap-2">
-                  <LogIn className="h-4 w-4" />
-                  התחברות
-                </TabsTrigger>
                 <TabsTrigger value="signup" className="gap-2">
                   <UserPlus className="h-4 w-4" />
                   הרשמה
+                </TabsTrigger>
+                <TabsTrigger value="login" className="gap-2">
+                  <LogIn className="h-4 w-4" />
+                  התחברות
                 </TabsTrigger>
               </TabsList>
 
