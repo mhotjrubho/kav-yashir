@@ -74,11 +74,8 @@ export function FileUploadSection({ onFilesChange, uploadedUrls }: FileUploadSec
           continue;
         }
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('complaint-attachments')
-          .getPublicUrl(filePath);
-
-        newFiles.push({ name: file.name, url: publicUrl, type: file.type });
+        // Store the file path (not public URL) - admins will use signed URLs to access
+        newFiles.push({ name: file.name, url: filePath, type: file.type });
       }
 
       if (newFiles.length > 0) {
