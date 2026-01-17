@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowRight, ExternalLink } from "lucide-react";
+import { Search, ArrowRight, Download, Loader2 } from "lucide-react";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
 
 interface PersonalDetails {
@@ -51,6 +51,54 @@ const complaintTypeHebrew: Record<string, string> = {
 
 // Station-based complaint types
 const stationBasedTypes = ["no_ride", "no_stop", "delay", "early_departure"];
+
+// Component to handle signed URL generation for attachments
+function AttachmentLink({ filePath }: { filePath: string }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleDownload = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Generate a signed URL (valid for 1 hour)
+      const { data, error } = await supabase.storage
+        .from('complaint-attachments')
+        .createSignedUrl(filePath, 3600);
+
+      if (error) {
+        console.error('Error generating signed URL:', error);
+        return;
+      }
+
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
+    } catch (err) {
+      console.error('Error downloading file:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [filePath]);
+
+  // Extract filename from path
+  const fileName = filePath.split('/').pop() || 'file';
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleDownload}
+      disabled={loading}
+      className="h-8 w-8 p-0"
+      title={fileName}
+    >
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Download className="h-4 w-4" />
+      )}
+    </Button>
+  );
+}
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -272,16 +320,8 @@ export default function Admin() {
                       <TableCell>
                         {complaint.attachments && complaint.attachments.length > 0 ? (
                           <div className="flex gap-1">
-                            {complaint.attachments.map((url, idx) => (
-                              <a
-                                key={idx}
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
+                            {complaint.attachments.map((filePath, idx) => (
+                              <AttachmentLink key={idx} filePath={filePath} />
                             ))}
                           </div>
                         ) : (

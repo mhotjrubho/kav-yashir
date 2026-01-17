@@ -29,7 +29,8 @@ import kavYasharLogo from "@/assets/kav-yashar-logo.png";
 import { AuthCityAutocomplete } from "@/components/auth/AuthCityAutocomplete";
 import { AuthStreetAutocomplete } from "@/components/auth/AuthStreetAutocomplete";
 
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyOK2lcmear68A9SGiSDhxkcQXkmrYz0hqkARlx9e3XtZFypcQg_G03_lCyQ2YkgtVYaQ/exec";
+// Webhook URL from environment variable for security
+const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL;
 
 const loginSchema = z.object({
   email: z.string().email("כתובת מייל לא תקינה"),
@@ -147,30 +148,32 @@ export default function Auth() {
         variant: "destructive",
       });
     } else {
-      // Send webhook for new user registration
-      try {
-        const webhookPayload = {
-          type: "new_user_registration",
-          "תאריך הרשמה": new Date().toLocaleString("he-IL"),
-          "שם פרטי": data.firstName,
-          "שם משפחה": data.lastName,
-          "מספר זהות": data.idNumber,
-          "טלפון": data.mobile,
-          "מספר רב-קו": data.ravKavNumber || "",
-          "עיר": data.city,
-          "רחוב": data.street,
-          "מספר בית": data.houseNumber || "",
-          "אימייל": data.email,
-        };
+      // Send webhook for new user registration (only if URL is configured)
+      if (WEBHOOK_URL) {
+        try {
+          const webhookPayload = {
+            type: "new_user_registration",
+            "תאריך הרשמה": new Date().toLocaleString("he-IL"),
+            "שם פרטי": data.firstName,
+            "שם משפחה": data.lastName,
+            "מספר זהות": data.idNumber,
+            "טלפון": data.mobile,
+            "מספר רב-קו": data.ravKavNumber || "",
+            "עיר": data.city,
+            "רחוב": data.street,
+            "מספר בית": data.houseNumber || "",
+            "אימייל": data.email,
+          };
 
-        await fetch(WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          mode: "no-cors",
-          body: JSON.stringify(webhookPayload),
-        });
-      } catch (webhookError) {
-        console.error("Webhook error:", webhookError);
+          await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            mode: "no-cors",
+            body: JSON.stringify(webhookPayload),
+          });
+        } catch (webhookError) {
+          console.error("Webhook error:", webhookError);
+        }
       }
 
       toast({
