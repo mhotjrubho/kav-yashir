@@ -23,6 +23,9 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
 
+// Webhook URL from environment variable for security
+const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL;
+
 export default function Index() {
   const navigate = useNavigate();
   const { profile, isAuthenticated, isProfileComplete, loading } = useAuthContext();
@@ -297,60 +300,62 @@ export default function Index() {
         throw new Error("Failed to save complaint");
       }
       
-      // Send to webhook (optional - won't fail if webhook fails)
-      try {
-        // Translate complaint type to Hebrew
-        const complaintTypeHebrew: Record<string, string> = {
-          no_ride: "נסיעה שלא בוצעה",
-          no_stop: "אי עצירה בתחנה",
-          delay: "איחור",
-          early_departure: "יציאה מוקדמת",
-          driver_behavior: "התנהגות נהג",
-          add_line: "הוספת קו",
-          overcrowding: "צפיפות",
-          add_frequency: "הוספת תדירות",
-          bus_condition: "מצב האוטובוס",
-          license_violation: "ביצוע שאינו מתאים לרישיון",
-          other: "אחר",
-        };
+      // Send to webhook (optional - won't fail if webhook fails, only if URL is configured)
+      if (WEBHOOK_URL) {
+        try {
+          // Translate complaint type to Hebrew
+          const complaintTypeHebrew: Record<string, string> = {
+            no_ride: "נסיעה שלא בוצעה",
+            no_stop: "אי עצירה בתחנה",
+            delay: "איחור",
+            early_departure: "יציאה מוקדמת",
+            driver_behavior: "התנהגות נהג",
+            add_line: "הוספת קו",
+            overcrowding: "צפיפות",
+            add_frequency: "הוספת תדירות",
+            bus_condition: "מצב האוטובוס",
+            license_violation: "ביצוע שאינו מתאים לרישיון",
+            other: "אחר",
+          };
 
-        // Build flat Hebrew webhook payload with ordered columns
-        const stationBasedTypes = ["no_ride", "no_stop", "delay", "early_departure"];
-        const isStationBased = stationBasedTypes.includes(data.complaintType);
-        const stationDetails = data.stationBasedDetails;
-        const otherDetails = getComplaintDetails(data) as Record<string, string> | null;
+          // Build flat Hebrew webhook payload with ordered columns
+          const stationBasedTypes = ["no_ride", "no_stop", "delay", "early_departure"];
+          const isStationBased = stationBasedTypes.includes(data.complaintType);
+          const stationDetails = data.stationBasedDetails;
+          const otherDetails = getComplaintDetails(data) as Record<string, string> | null;
 
-        const hebrewPayload = {
-          "תאריך ושעת קבלה": new Date().toLocaleString("he-IL"),
-          "שם פרטי": data.personalDetails.firstName,
-          "שם משפחה": data.personalDetails.lastName,
-          "מספר זהות": data.personalDetails.idNumber,
-          "מספר רב-קו": data.personalDetails.ravKavNumber || "",
-          "כתובת מייל": data.personalDetails.email,
-          "סוג תלונה": complaintTypeHebrew[data.complaintType] || data.complaintType,
-          "מספר תחנה": isStationBased ? stationDetails?.stationNumber || "" : "",
-          "שם תחנה": "", // יתווסף בהמשך
-          "עיר תחנה": "", // יתווסף בהמשך
-          "מספר קו": isStationBased ? stationDetails?.lineNumber || "" : otherDetails?.lineNumber || "",
-          "חברת קו": otherDetails?.operator || "",
-          "תאריך": isStationBased ? stationDetails?.eventDate || "" : otherDetails?.eventDate || "",
-          "שעת הגעה לתחנה": isStationBased ? stationDetails?.arrivalTime || "" : "",
-          "שעת עזיבה תחנה": isStationBased ? stationDetails?.departureTime || "" : "",
-          "תיאור המקרה": isStationBased ? stationDetails?.description || "" : otherDetails?.description || "",
-          "קבצים מצורפים": (data.attachments || []).join(", "),
-          "קוד פניה": refNum,
-          "סטטוס": "",
-          "קבצי תגובה ממשרד התחבורה": "",
-        };
+          const hebrewPayload = {
+            "תאריך ושעת קבלה": new Date().toLocaleString("he-IL"),
+            "שם פרטי": data.personalDetails.firstName,
+            "שם משפחה": data.personalDetails.lastName,
+            "מספר זהות": data.personalDetails.idNumber,
+            "מספר רב-קו": data.personalDetails.ravKavNumber || "",
+            "כתובת מייל": data.personalDetails.email,
+            "סוג תלונה": complaintTypeHebrew[data.complaintType] || data.complaintType,
+            "מספר תחנה": isStationBased ? stationDetails?.stationNumber || "" : "",
+            "שם תחנה": "", // יתווסף בהמשך
+            "עיר תחנה": "", // יתווסף בהמשך
+            "מספר קו": isStationBased ? stationDetails?.lineNumber || "" : otherDetails?.lineNumber || "",
+            "חברת קו": otherDetails?.operator || "",
+            "תאריך": isStationBased ? stationDetails?.eventDate || "" : otherDetails?.eventDate || "",
+            "שעת הגעה לתחנה": isStationBased ? stationDetails?.arrivalTime || "" : "",
+            "שעת עזיבה תחנה": isStationBased ? stationDetails?.departureTime || "" : "",
+            "תיאור המקרה": isStationBased ? stationDetails?.description || "" : otherDetails?.description || "",
+            "קבצים מצורפים": (data.attachments || []).join(", "),
+            "קוד פניה": refNum,
+            "סטטוס": "",
+            "קבצי תגובה ממשרד התחבורה": "",
+          };
 
-        await fetch("https://script.google.com/macros/s/AKfycbyOK2lcmear68A9SGiSDhxkcQXkmrYz0hqkARlx9e3XtZFypcQg_G03_lCyQ2YkgtVYaQ/exec", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          mode: "no-cors",
-          body: JSON.stringify(hebrewPayload),
-        });
-      } catch (webhookError) {
-        console.error("Webhook error:", webhookError);
+          await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            mode: "no-cors",
+            body: JSON.stringify(hebrewPayload),
+          });
+        } catch (webhookError) {
+          console.error("Webhook error:", webhookError);
+        }
       }
       
       setReferenceNumber(refNum);
