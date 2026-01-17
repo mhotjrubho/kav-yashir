@@ -221,7 +221,7 @@ export default function Profile() {
         <div className="mb-4">
           <Link to="/">
             <Button variant="outline" size="sm">
-              <Home className="ml-2 h-4 w-4" />
+              <Home className="me-2 h-4 w-4" />
               חזרה לדף הבית
             </Button>
           </Link>
@@ -346,9 +346,9 @@ export default function Profile() {
                   className="w-full mt-6" 
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "שומר..." : (
+                {isSubmitting ? "שומר..." : (
                     <>
-                      <Save className="ml-2 h-4 w-4" />
+                      <Save className="me-2 h-4 w-4" />
                       שמירת שינויים
                     </>
                   )}
@@ -379,9 +379,9 @@ export default function Profile() {
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                 <p className="text-muted-foreground mb-4">עדיין לא הגשת תלונות</p>
                 <Link to="/">
-                  <Button variant="outline">
+                  <Button variant="outline" className="flex-row-reverse">
                     הגש תלונה ראשונה
-                    <ArrowRight className="mr-2 h-4 w-4" />
+                    <ArrowRight className="me-2 h-4 w-4 rotate-180" />
                   </Button>
                 </Link>
               </div>
