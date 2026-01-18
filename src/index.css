@@ -113,6 +113,11 @@
     text-align: right;
   }
 
+  label {
+    text-align: right;
+    display: block;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
