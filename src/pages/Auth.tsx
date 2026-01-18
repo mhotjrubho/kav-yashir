@@ -28,9 +28,7 @@ import { validateIsraeliId } from "@/lib/israeliIdValidator";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
 import { AuthCityAutocomplete } from "@/components/auth/AuthCityAutocomplete";
 import { AuthStreetAutocomplete } from "@/components/auth/AuthStreetAutocomplete";
-
-// Webhook URL from environment variable for security
-const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL;
+import { supabase } from "@/integrations/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email("כתובת מייל לא תקינה"),
@@ -148,32 +146,27 @@ export default function Auth() {
         variant: "destructive",
       });
     } else {
-      // Send webhook for new user registration (only if URL is configured)
-      if (WEBHOOK_URL) {
-        try {
-          const webhookPayload = {
-            type: "new_user_registration",
-            "תאריך הרשמה": new Date().toLocaleString("he-IL"),
-            "שם פרטי": data.firstName,
-            "שם משפחה": data.lastName,
-            "מספר זהות": data.idNumber,
-            "טלפון": data.mobile,
-            "מספר רב-קו": data.ravKavNumber || "",
-            "עיר": data.city,
-            "רחוב": data.street,
-            "מספר בית": data.houseNumber || "",
-            "אימייל": data.email,
-          };
+      // Send webhook for new user registration via Edge Function
+      try {
+        const webhookPayload = {
+          type: "new_user_registration",
+          "תאריך הרשמה": new Date().toLocaleString("he-IL"),
+          "שם פרטי": data.firstName,
+          "שם משפחה": data.lastName,
+          "מספר זהות": data.idNumber,
+          "טלפון": data.mobile,
+          "מספר רב-קו": data.ravKavNumber || "",
+          "עיר": data.city,
+          "רחוב": data.street,
+          "מספר בית": data.houseNumber || "",
+          "אימייל": data.email,
+        };
 
-          await fetch(WEBHOOK_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            mode: "no-cors",
-            body: JSON.stringify(webhookPayload),
-          });
-        } catch (webhookError) {
-          console.error("Webhook error:", webhookError);
-        }
+        await supabase.functions.invoke('send-webhook', {
+          body: { type: 'registration', data: webhookPayload },
+        });
+      } catch (webhookError) {
+        console.error("Webhook error:", webhookError);
       }
 
       toast({
