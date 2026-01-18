@@ -19,6 +19,8 @@ import { toast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { validateIsraeliId } from "@/lib/israeliIdValidator";
 import kavYasharLogo from "@/assets/kav-yashar-logo.png";
+import { AuthCityAutocomplete } from "@/components/auth/AuthCityAutocomplete";
+import { AuthStreetAutocomplete } from "@/components/auth/AuthStreetAutocomplete";
 
 const profileSchema = z.object({
   first_name: z.string().min(2, "שם פרטי חייב להכיל לפחות 2 תווים"),
@@ -39,6 +41,7 @@ export default function CompleteProfile() {
   const navigate = useNavigate();
   const { profile, updateProfile, isAuthenticated, isProfileComplete, loading } = useAuthContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCity, setSelectedCity] = useState(profile?.city || "");
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -78,8 +81,14 @@ export default function CompleteProfile() {
         street: profile.street || "",
         house_number: profile.house_number || "",
       });
+      setSelectedCity(profile.city || "");
     }
   }, [profile, form]);
+
+  const handleCitySelect = (city: string) => {
+    setSelectedCity(city);
+    form.setValue("street", "");
+  };
 
   const handleSubmit = async (data: ProfileFormData) => {
     setIsSubmitting(true);
@@ -212,31 +221,15 @@ export default function CompleteProfile() {
                 />
 
                 <div className="grid grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>עיר מגורים *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="עיר" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <AuthCityAutocomplete
+                    form={form}
+                    fieldName="city"
+                    onCitySelect={handleCitySelect}
                   />
-                  <FormField
-                    control={form.control}
-                    name="street"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>רחוב *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="רחוב" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <AuthStreetAutocomplete
+                    form={form}
+                    fieldName="street"
+                    cityName={selectedCity}
                   />
                   <FormField
                     control={form.control}
