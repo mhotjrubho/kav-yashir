@@ -8,7 +8,8 @@ const corsHeaders = {
 
 interface StatusUpdatePayload {
   reference_number: string;
-  status: string;
+  status?: string;
+  ministry_case_id?: string;
   notes?: string;
 }
 
@@ -25,57 +26,62 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload = await req.json() as StatusUpdatePayload;
-    const { reference_number, status, notes } = payload;
+    
+    console.log('Received status update payload:', JSON.stringify(payload));
 
-    if (!reference_number || !status) {
+    if (!payload.reference_number) {
       return new Response(
-        JSON.stringify({ error: 'Missing reference_number or status' }),
+        JSON.stringify({ error: 'Missing reference_number in request body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Updating status for complaint ${reference_number} to ${status}`);
+    // Build update object dynamically
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
 
-    // Update the complaint status
+    if (payload.status) {
+      updateData.status = payload.status;
+    }
+
+    if (payload.ministry_case_id) {
+      updateData.ministry_case_id = payload.ministry_case_id;
+    }
+
+    console.log('Updating complaint with data:', JSON.stringify(updateData));
+
     const { data, error } = await supabase
       .from('complaints')
-      .update({ 
-        status: status,
-        updated_at: new Date().toISOString()
-      })
-      .eq('reference_number', reference_number)
-      .select()
-      .single();
+      .update(updateData)
+      .eq('reference_number', payload.reference_number)
+      .select();
 
     if (error) {
       console.error('Database error:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to update complaint', details: error.message }),
+        JSON.stringify({ error: 'Database error', details: error.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Complaint not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Successfully updated complaint ${reference_number}`);
+    console.log('Update successful:', JSON.stringify(data[0]));
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Status updated successfully',
-        complaint: data 
-      }),
+      JSON.stringify({ success: true, message: 'Status updated successfully', data: data[0] }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: String(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
