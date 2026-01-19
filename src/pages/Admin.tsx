@@ -32,6 +32,7 @@ interface Complaint {
   complaint_details: Record<string, unknown> | null;
   attachments: string[] | null;
   status: string;
+  ministry_case_id: string | null;
   created_at: string;
 }
 
@@ -150,6 +151,7 @@ export default function Admin() {
         personal_details: c.personal_details as PersonalDetails,
         complaint_details: c.complaint_details as Record<string, unknown> | null,
         attachments: c.attachments || null,
+        ministry_case_id: c.ministry_case_id || null,
       })));
     } catch (error) {
       console.error("Error fetching complaints:", error);
@@ -249,6 +251,7 @@ export default function Admin() {
                 <TableHead className="text-right whitespace-nowrap">תיאור המקרה</TableHead>
                 <TableHead className="text-right whitespace-nowrap">קבצים מצורפים</TableHead>
                 <TableHead className="text-right whitespace-nowrap">קוד פניה</TableHead>
+                <TableHead className="text-right whitespace-nowrap">מספר פניה במשרד התחבורה</TableHead>
                 <TableHead className="text-right whitespace-nowrap">סטטוס</TableHead>
                 <TableHead className="text-right whitespace-nowrap">קבצי תגובה ממשרד התחבורה</TableHead>
               </TableRow>
@@ -256,7 +259,7 @@ export default function Admin() {
             <TableBody>
               {filteredComplaints.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={20} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={21} className="text-center py-8 text-muted-foreground">
                     לא נמצאו תלונות
                   </TableCell>
                 </TableRow>
@@ -332,9 +335,13 @@ export default function Admin() {
                       <TableCell className="font-mono text-sm">
                         {complaint.reference_number}
                       </TableCell>
-                      {/* 18. סטטוס */}
-                      <TableCell>{/* ריק - יתווסף בהמשך */}</TableCell>
-                      {/* 19. קבצי תגובה */}
+                      {/* 18. מספר פניה במשרד התחבורה */}
+                      <TableCell className="font-mono text-sm">
+                        {complaint.ministry_case_id || "-"}
+                      </TableCell>
+                      {/* 19. סטטוס */}
+                      <TableCell>{complaint.status || "-"}</TableCell>
+                      {/* 20. קבצי תגובה */}
                       <TableCell>{/* ריק - יתווסף בהמשך */}</TableCell>
                     </TableRow>
                   );

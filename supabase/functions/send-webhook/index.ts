@@ -37,6 +37,7 @@ serve(async (req) => {
     }
 
     console.log(`Processing ${type} webhook request`);
+    console.log('Webhook payload with keys:', JSON.stringify(data, null, 2));
 
     // Forward to Google Apps Script webhook
     const response = await fetch(webhookUrl, {

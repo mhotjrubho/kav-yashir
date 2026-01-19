@@ -21,6 +21,7 @@ export type Database = {
           complaint_type: string
           created_at: string
           id: string
+          ministry_case_id: string | null
           personal_details: Json
           reference_number: string
           status: string
@@ -33,6 +34,7 @@ export type Database = {
           complaint_type: string
           created_at?: string
           id?: string
+          ministry_case_id?: string | null
           personal_details: Json
           reference_number: string
           status?: string
@@ -45,6 +47,7 @@ export type Database = {
           complaint_type?: string
           created_at?: string
           id?: string
+          ministry_case_id?: string | null
           personal_details?: Json
           reference_number?: string
           status?: string
